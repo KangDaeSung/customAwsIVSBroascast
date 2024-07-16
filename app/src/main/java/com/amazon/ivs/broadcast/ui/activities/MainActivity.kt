@@ -16,7 +16,6 @@ import com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsumm
 import com.amazon.ivs.broadcast.ui.fragments.main.MainFragment
 import com.amazon.ivs.broadcast.ui.fragments.main.MainViewModel
 import com.amazon.ivs.broadcast.ui.fragments.settings.graphicpropertiesfragment.GraphicPropertiesFragment
-import com.amazon.ivs.broadcast.ui.fragments.settings.networkpropertiesfragment.NetworkPropertiesFragment
 import com.amazon.ivs.broadcast.ui.fragments.settings.settingsfragment.SettingsFragment
 import com.amazon.ivs.broadcast.ui.fragments.splash.SplashFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,20 +30,17 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (mainViewModel.isOnboardingDone) {
-            openFragment(R.id.navigation_main)
-        }
+        openFragment(R.id.navigation_main)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 getCurrentFragment()?.let { currentFragment ->
                     when (currentFragment) {
                         is SplashFragment -> finish()
-                        is ConfigurationSetupFragment -> if (currentFragment.canGoBack()) openFragment(R.id.navigation_splash) else Unit
+                        is ConfigurationSetupFragment -> openFragment(R.id.navigation_splash)
                         is ConfigurationSummaryFragment -> openFragment(R.id.navigation_configuration_setup)
                         is MainFragment -> if (currentFragment.onBackPressed()) finish() else Unit
                         is SettingsFragment -> openFragment(R.id.navigation_main)
-                        is NetworkPropertiesFragment -> openFragment(R.id.navigation_settings)
                         is GraphicPropertiesFragment -> openFragment(R.id.navigation_settings)
                         else -> findNavController(R.id.nav_host_fragment).navigateUp()
                     }

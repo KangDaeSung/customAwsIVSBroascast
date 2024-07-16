@@ -1,8 +1,6 @@
 package com.amazon.ivs.broadcast.common.broadcast
 
-import android.app.Notification
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Paint
@@ -12,18 +10,26 @@ import android.os.Looper
 import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
-import com.amazon.ivs.broadcast.common.*
+import com.amazon.ivs.broadcast.common.BYTES_TO_MEGABYTES_FACTOR
+import com.amazon.ivs.broadcast.common.ConsumableSharedFlow
+import com.amazon.ivs.broadcast.common.SLOT_DEFAULT
+import com.amazon.ivs.broadcast.common.asString
+import com.amazon.ivs.broadcast.common.emitNew
+import com.amazon.ivs.broadcast.common.getSessionUsedBytes
+import com.amazon.ivs.broadcast.common.launchMain
 import com.amazon.ivs.broadcast.models.ui.DeviceItem
 import com.amazon.ivs.broadcast.models.ui.StreamTopBarModel
-import com.amazon.ivs.broadcast.ui.activities.NotificationActivity
 import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
-import com.amazonaws.ivs.broadcast.*
+import com.amazonaws.ivs.broadcast.BroadcastConfiguration
+import com.amazonaws.ivs.broadcast.BroadcastException
+import com.amazonaws.ivs.broadcast.BroadcastSession
+import com.amazonaws.ivs.broadcast.Device
+import com.amazonaws.ivs.broadcast.ErrorType
+import com.amazonaws.ivs.broadcast.ImageDevice
+import com.amazonaws.ivs.broadcast.SurfaceSource
 import kotlinx.coroutines.flow.asSharedFlow
-import com.amazon.ivs.broadcast.CLog
-
-private const val NOTIFICATION_CHANNEL_ID = "notificationId"
-private const val NOTIFICATION_CHANNEL_NAME = "notificationName"
 
 enum class BroadcastError(val error: Int) {
     FATAL(R.string.error_fatal),
@@ -200,10 +206,12 @@ class BroadcastManager(private val context: Context) {
             CLog.d("Session released")
         }
     }
-
+    val playback_url = "https://bbe4f98c2140.ap-northeast-2.playback.live-video.net/api/video/v1/ap-northeast-2.819673385181.channel.MgvpzndAaNwp.m3u8"
+    val ingest_endpoint = "rtmps://bbe4f98c2140.global-contribute.live-video.net"
+    val stream_key = "sk_ap-northeast-2_eTMuwupJss7o_opLVzqrLZmVy2xCCeHGQp0N1765nzU"
     fun startStream() {
-        CLog.d("Starting stream: ${configuration.ingestServerUrl}, ${configuration.streamKey}")
-        session?.start(configuration.ingestServerUrl, configuration.streamKey)
+        CLog.d("Starting stream: $ingest_endpoint, $stream_key")
+        session?.start(ingest_endpoint, stream_key)
     }
 
     fun flipCameraDirection() {
@@ -276,46 +284,6 @@ class BroadcastManager(private val context: Context) {
         }
     }
 
-    fun startScreenCapture(data: Intent?) {
-        CLog.d("Starting screen capture")
-        isScreenShareEnabled = true
-        _onScreenShareEnabled.tryEmit(isScreenShareEnabled)
-        slotNames.forEach { slot ->
-            session?.mixer?.removeSlot(slot)?.takeIf { it }?.run {
-                CLog.d("Slot: $slot removed")
-            }
-        }
-        configuration.screenShareSlots.forEach { slot ->
-            session?.mixer?.addSlot(slot)?.takeIf { it }?.run {
-                CLog.d("Slot: ${slot.name} added")
-            }
-        }
-        session?.createSystemCaptureSources(data, ScreenCaptureService::class.java, createNotification()) { devices ->
-            devices.forEach { device ->
-                val boundState = session?.mixer?.getDeviceBinding(device)
-                CLog.d("Screen share device added: ${device.descriptor.friendlyName} to slot: $boundState")
-            }
-            screenDevices = devices
-        }
-    }
-
-    fun stopScreenShare() {
-        CLog.d("Stopping screen capture")
-        isScreenShareEnabled = false
-        _onScreenShareEnabled.tryEmit(isScreenShareEnabled)
-        session?.stopSystemCapture()
-        slotNames.forEach { slot ->
-            session?.mixer?.removeSlot(slot)
-        }
-        session?.mixer?.addSlot(configuration.defaultSlot)
-        screenDevices.forEach { device ->
-            CLog.d("Detaching screen share device: ${device.descriptor.friendlyName}")
-            session?.detachDevice(device)
-        }
-        screenDevices.clear()
-        drawCameraOff(isVideoMuted)
-    }
-
     fun displayCameraOutput() {
         (cameraDevice as? ImageDevice)?.getPreviewView(BroadcastConfiguration.AspectMode.FILL)?.run {
             launchMain {
@@ -327,15 +295,6 @@ class BroadcastManager(private val context: Context) {
                 _onPreviewUpdated.tryEmit(this@run)
             }
         }
-    }
-
-    private fun createNotification(): Notification? {
-        CLog.d("Creating notification")
-        return session?.createServiceNotificationBuilder(
-            NOTIFICATION_CHANNEL_ID,
-            NOTIFICATION_CHANNEL_NAME,
-            Intent(context, NotificationActivity::class.java)
-        )?.build()
     }
 
     private fun attachInitialDevices() {

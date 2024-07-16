@@ -8,11 +8,9 @@ import kotlin.reflect.KProperty
 const val PREFERENCES_NAME = "app_preferences"
 
 class PreferenceProvider(context: Context, preferencesName: String) {
-    var isOnboardingDone by booleanPreference()
     var orientation by intPreference(Orientation.AUTO.id)
     var width by floatPreference(720f)
     var height by floatPreference(1280f)
-    var useCustomBitrateLimits by booleanPreference()
     var useCustomResolution by booleanPreference()
     var defaultCameraId by stringPreference()
     var defaultCameraPosition by stringPreference()

@@ -53,8 +53,8 @@
             android:layout_gravity="center_horizontal"
             android:background="@drawable/bg_broadcast_bottom_sheet"
             android:clickable="true"
-            android:paddingBottom="@dimen/broadcast_padding_big"
-            android:focusable="true">
+            android:focusable="true"
+            android:paddingBottom="@dimen/broadcast_padding_big">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/grab_item"
@@ -71,13 +71,14 @@
                 android:id="@+id/broadcast_mute"
                 android:layout_width="@dimen/broadcast_controls_button_diameter"
                 android:layout_height="@dimen/broadcast_controls_button_diameter"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="@dimen/broadcast_margin_normal"
                 android:background="@{isStreamMuted ? @drawable/bg_broadcast_circle_button_red : @drawable/bg_broadcast_circle_button }"
                 android:contentDescription="@string/description_mute"
                 android:elevation="5dp"
                 android:padding="@dimen/broadcast_padding_small"
                 android:src="@drawable/ic_muted"
-                app:layout_constraintStart_toStartOf="@id/share_screen"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/grab_item"
                 app:tint="@color/broadcast_white_color"
                 tools:src="@drawable/ic_muted" />
@@ -147,11 +148,12 @@
                 android:id="@+id/broadcast_go_live"
                 android:layout_width="@dimen/broadcast_controls_button_diameter"
                 android:layout_height="@dimen/broadcast_controls_button_diameter"
+                android:layout_marginEnd="16dp"
                 android:background="@{isStreamOnline ?  @drawable/bg_end_stream : @drawable/bg_go_live}"
                 android:contentDescription="@string/description_go_live_button"
                 android:elevation="5dp"
                 android:padding="@dimen/broadcast_padding_small"
-                app:layout_constraintEnd_toEndOf="@id/invite_to_watch"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/broadcast_mute"
                 app:tint="@color/broadcast_white_color"
                 tools:background="@drawable/bg_go_live" />
@@ -168,68 +170,17 @@
                 app:layout_constraintStart_toStartOf="@id/broadcast_go_live"
                 app:layout_constraintTop_toTopOf="@id/broadcast_mute_text" />
 
-            <TextView
-                android:id="@+id/share_screen"
-                style="@style/TextStyleSecondary"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/broadcast_button_height"
-                android:layout_marginStart="@dimen/broadcast_margin_big"
-                android:layout_marginTop="@dimen/broadcast_margin_big"
-                android:layout_marginEnd="@dimen/broadcast_margin_small"
-                android:background="@drawable/bg_broadcast_rectangle_button"
-                android:elevation="5dp"
-                android:visibility="@{isScreenCaptureOn ? View.INVISIBLE : View.VISIBLE}"
-                android:gravity="center"
-                android:text="@string/share_screen"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/invite_to_watch"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/broadcast_mute_text" />
-
-            <TextView
-                android:id="@+id/stop_screen_share_menu_button"
-                style="@style/TextStyleSecondary"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/broadcast_button_height"
-                android:layout_marginStart="@dimen/broadcast_margin_big"
-                android:layout_marginTop="@dimen/broadcast_margin_big"
-                android:layout_marginEnd="@dimen/broadcast_margin_small"
-                android:background="@drawable/bg_broadcast_rectangle_red_button"
-                android:elevation="5dp"
-                android:visibility="@{isScreenCaptureOn ? View.VISIBLE : View.GONE}"
-                android:gravity="center"
-                android:text="@string/stop_sharing"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/invite_to_watch"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/broadcast_mute_text" />
-
-            <TextView
-                android:id="@+id/invite_to_watch"
-                style="@style/TextStyleSecondary"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/broadcast_button_height"
-                android:layout_marginStart="@dimen/broadcast_margin_small"
-                android:layout_marginEnd="@dimen/broadcast_margin_big"
-                android:background="@drawable/bg_broadcast_rectangle_button"
-                android:elevation="5dp"
-                android:gravity="center"
-                android:text="@string/invite_to_watch"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/share_screen"
-                app:layout_constraintTop_toTopOf="@id/share_screen" />
-
             <FrameLayout
                 android:id="@+id/separator"
                 android:layout_width="0dp"
                 android:layout_height="1.5dp"
                 android:layout_marginTop="@dimen/broadcast_margin_big"
-                android:visibility="gone"
                 android:background="@color/broadcast_divider_color"
+                android:visibility="gone"
                 app:layout_constraintBottom_toTopOf="@id/timed_metadata"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/share_screen" />
+                app:layout_constraintTop_toBottomOf="@id/broadcast_mute" />
 
             <TextView
                 android:id="@+id/timed_metadata"
@@ -239,10 +190,10 @@
                 android:layout_marginTop="@dimen/broadcast_margin_normal"
                 android:layout_marginBottom="@dimen/broadcast_margin_medium"
                 android:text="@string/timed_metadata"
-                android:visibility="gone"
                 android:textSize="12sp"
+                android:visibility="gone"
                 app:layout_constraintBottom_toTopOf="@id/sample_event"
-                app:layout_constraintStart_toStartOf="@id/share_screen"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/separator" />
 
             <TextView
@@ -252,9 +203,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/broadcast_margin_tiny"
                 android:text="@string/sample_event"
-                app:layout_constraintBottom_toTopOf="@id/sample_event_value"
                 android:visibility="gone"
-                app:layout_constraintStart_toStartOf="@id/share_screen"
+                app:layout_constraintBottom_toTopOf="@id/sample_event_value"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/timed_metadata" />
 
             <TextView
@@ -269,7 +220,7 @@
                 android:textSize="14sp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@id/share_screen"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/sample_event" />
 
             <TextView
@@ -287,7 +238,7 @@
                 android:text="@string/send"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@id/sample_event_value"
-                app:layout_constraintEnd_toEndOf="@id/invite_to_watch"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/sample_event" />
 
             <ProgressBar
@@ -299,7 +250,7 @@
                 android:indeterminateTint="@color/broadcast_primary_accent_color"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@id/sample_event_value"
-                app:layout_constraintEnd_toEndOf="@id/invite_to_watch"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/sample_event" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

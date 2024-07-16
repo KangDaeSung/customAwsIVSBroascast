@@ -51,7 +51,8 @@ fun Fragment.formatTime(timeInSeconds: Int): String {
         resources.getString(R.string.stream_time_mm_ss, minutes.toString(), String.format("%02d", seconds))
     }
 }
-fun Fragment.toFormattedGbPerHour(bps: Int, template: Int = R.string.gb_per_h_template) = requireContext().getString(template, (bps / BPS_TO_GBPH_FACTOR).formatToDecimal(1).toString())
+fun Fragment.toFormattedGbPerHour(bps: Int, template: Int = R.string.gb_per_h_template) =
+    requireContext().getString(template, (bps / BPS_TO_GBPH_FACTOR).formatToDecimal(1).toString())
 
 fun Fragment.toFormattedKbps(bps: Int, template: Int = R.string.kbps_template): String {
     var formattedKbps = ""

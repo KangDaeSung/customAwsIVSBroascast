@@ -1,21 +1,18 @@
 package com.amazon.ivs.broadcast.ui.fragments.main
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.PictureInPictureParams
-import android.content.Context.MEDIA_PROJECTION_SERVICE
 import android.content.res.Configuration
-import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Rational
 import android.view.TextureView
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnLayout
 import androidx.core.view.drawToBitmap
+import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
 import com.amazon.ivs.broadcast.common.*
 import com.amazon.ivs.broadcast.common.broadcast.BroadcastState
@@ -32,7 +29,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import com.amazon.ivs.broadcast.CLog
 
 @AndroidEntryPoint
 class MainFragment : BaseFragment(R.layout.fragment_main) {
@@ -42,15 +38,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     private val bottomSheet: BottomSheetBehavior<View> by lazy {
         BottomSheetBehavior.from(binding.broadcastBottomSheet.root)
     }
-
-    private val startForScreenShare =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            CLog.d("Screen share started with result: ${result.resultCode}")
-            if (result.resultCode == Activity.RESULT_OK) {
-                bottomSheet.setCollapsed()
-                mainViewModel.startScreenCapture(result.data)
-            }
-        }
 
     private var deviceHealth = DeviceHealth()
     private val deviceHealthHandler = Handler(Looper.getMainLooper())
@@ -73,8 +60,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         CLog.d("onViewCreated")
-
-        mainViewModel.isOnboardingDone = true
         configurationViewModel.resolution.orientation = configurationViewModel.orientationId
         updateControlPanelVisibility(requireContext().isViewLandscape(), true)
         if (!mainViewModel.isStreamOnline) {
@@ -156,9 +141,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
         binding.broadcastSideSheet.motionLayout.setVisible(requireActivity().isViewLandscape())
 
-        binding.broadcastSideSheet.screenCaptureOn.setOnClickListener {
-            updateSideSheetState()
-        }
         binding.broadcastSideSheet.streamContainerLandscape.setOnClickListener {
             updateSideSheetState()
         }
@@ -167,12 +149,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
         binding.popupContainer.setOnClickListener {
             clearPopUp()
-        }
-        binding.broadcastBottomSheet.inviteToWatch.setOnClickListener {
-            onInviteToWatchClick()
-        }
-        binding.broadcastSideSheet.inviteToWatch.setOnClickListener {
-            onInviteToWatchClick()
         }
         binding.broadcastBottomSheet.broadcastMute.setOnClickListener {
             onMuteButtonClick()
@@ -186,21 +162,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         binding.broadcastBottomSheet.broadcastGoLive.setOnClickListener {
             onGoLiveButtonClick()
         }
-        binding.broadcastBottomSheet.shareScreen.setOnClickListener {
-            startScreenCapture()
-        }
-        binding.stopScreenShareCenterButton.setOnClickListener {
-            mainViewModel.stopScreenShare()
-        }
-        binding.broadcastBottomSheet.stopScreenShareMenuButton.setOnClickListener {
-            mainViewModel.stopScreenShare()
-        }
-        binding.broadcastSideSheet.stopScreenShareMenuButton.setOnClickListener {
-            mainViewModel.stopScreenShare()
-        }
-        binding.broadcastSideSheet.stopScreenShareCenterButton.setOnClickListener {
-            mainViewModel.stopScreenShare()
-        }
         binding.broadcastSideSheet.broadcastCamera.setOnClickListener {
             onCameraButtonClick()
         }
@@ -212,9 +173,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
         binding.broadcastSideSheet.broadcastGoLive.setOnClickListener {
             onGoLiveButtonClick()
-        }
-        binding.broadcastSideSheet.shareScreen.setOnClickListener {
-            startScreenCapture()
         }
         binding.broadcastSideSheet.sendMetadata.setOnClickListener {
             onSendMetadataButtonClick()
@@ -382,12 +340,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         binding.broadcastSideSheet.miniPreviewContainerLandscape.layoutParams = miniContainerParams
     }
 
-    private fun onInviteToWatchClick() {
-        configurationViewModel.playbackUrl?.let { playbackUrl ->
-            activity?.startShareIntent(playbackUrl)
-        }
-    }
-
     private fun updateControlPanelVisibility(isLandscape: Boolean, isInOnCreate: Boolean = false) {
         binding.broadcastBottomSheet.root.setVisible(!isLandscape)
         binding.broadcastSideSheet.motionLayout.setVisible(isLandscape)
@@ -499,12 +451,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                     binding.defaultSlotContainer.addView(textureView)
                 }
             }
-        }
-    }
-
-    private fun startScreenCapture() {
-        (requireContext().getSystemService(MEDIA_PROJECTION_SERVICE) as? MediaProjectionManager)?.run {
-            startForScreenShare.launch(createScreenCaptureIntent())
         }
     }
 

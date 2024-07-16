@@ -1,18 +1,8 @@
 package com.amazon.ivs.broadcast.common
 
-const val AMAZON_IVS_URL = "https://aws.amazon.com/ivs/"
-const val PRIVACY_POLICY_URL = "https://aws.amazon.com/privacy/"
-
-const val SLOT_SCREEN_SHARE = "screen_share_slot"
 const val SLOT_DEFAULT = "camera_slot"
 
-val slotNames = listOf(
-    SLOT_SCREEN_SHARE,
-    SLOT_DEFAULT
-)
-
 const val ANIMATION_DURATION = 250L
-const val TIME_UNTIL_WARNING = 15000L
 const val POPUP_DURATION = 10000L
 const val DISABLE_DURATION = 1000L
 

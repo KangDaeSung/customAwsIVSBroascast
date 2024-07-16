@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import com.amazon.ivs.broadcast.R
-import com.amazon.ivs.broadcast.common.PRIVACY_POLICY_URL
 import com.amazon.ivs.broadcast.common.isPermissionGranted
 import com.amazon.ivs.broadcast.common.openFragment
 import com.amazon.ivs.broadcast.common.viewBinding
@@ -62,11 +61,6 @@ class PermissionsFragment : BaseFragment(R.layout.fragment_permissions) {
 
         binding.permissionsContinue.setOnClickListener {
             openFragment(R.id.navigation_configuration_setup)
-        }
-
-        binding.permissionsPrivacyNote.setOnClickListener {
-            configurationViewModel.webViewUrl = PRIVACY_POLICY_URL
-            openFragment(R.id.navigation_web_view)
         }
     }
 

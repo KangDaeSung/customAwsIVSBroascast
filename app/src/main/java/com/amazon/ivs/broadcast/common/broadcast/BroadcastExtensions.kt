@@ -11,8 +11,8 @@ fun Context.listAvailableCameras(): List<Device.Descriptor> =
         listOf()
     }
 
-fun Context.getCamera(position: Device.Descriptor.Position) = listAvailableCameras()
-    .firstOrNull { it.position == position }
+fun Context.getCamera(position: Device.Descriptor.Position) = listAvailableCameras().firstOrNull { it.position == position }
 
+//필수
 fun Device.Descriptor.isExternal(): Boolean =
     position == Device.Descriptor.Position.USB || position == Device.Descriptor.Position.BLUETOOTH || position == Device.Descriptor.Position.AUX

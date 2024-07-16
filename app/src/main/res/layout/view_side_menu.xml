@@ -56,7 +56,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:cardBackgroundColor="@color/broadcast_transparent"
-                app:cardCornerRadius="16dp">
+                app:cardCornerRadius="16dp"
+                tools:visibility="gone">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -83,8 +84,8 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        tools:visibility="visible"
-                        tools:ignore="UseCompoundDrawables">
+                        tools:ignore="UseCompoundDrawables"
+                        tools:visibility="visible">
 
                         <ImageView
                             android:id="@+id/camera_off_icon"
@@ -137,55 +138,6 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/screen_capture_on"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/broadcast_primary_bg_color"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:visibility="@{isScreenCaptureOn ? View.VISIBLE : View.GONE}">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_screen_sharing" />
-
-            <TextView
-                style="@style/TextStylePrimary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/broadcast_margin_big"
-                android:layout_marginBottom="@dimen/broadcast_margin_small"
-                android:text="@string/screen_sharing_active"
-                android:textSize="18sp" />
-
-            <TextView
-                style="@style/TextStyleTertiary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/screensharing_camera_note"
-                android:textAlignment="center"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/stop_screen_share_center_button"
-                style="@style/TextStyleSecondary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/broadcast_margin_normal"
-                android:background="@drawable/bg_broadcast_rectangle_button"
-                android:elevation="5dp"
-                android:gravity="center"
-                android:paddingStart="@dimen/broadcast_padding_normal"
-                android:paddingTop="@dimen/broadcast_padding_small"
-                android:paddingEnd="@dimen/broadcast_padding_normal"
-                android:paddingBottom="@dimen/broadcast_padding_small"
-                android:text="@string/stop_sharing" />
 
         </LinearLayout>
 
@@ -320,7 +272,7 @@
             android:id="@+id/landscape_menu_metadata_holder"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:background="@color/broadcast_grey_semi_transparent_color"
+            android:background="#ffffff"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -496,7 +448,8 @@
             app:cardBackgroundColor="@color/broadcast_secondary_bg_color"
             app:cardCornerRadius="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/landscape_settings_button">
+            app:layout_constraintStart_toEndOf="@id/landscape_settings_button"
+            tools:visibility="gone">
 
             <FrameLayout
                 android:id="@+id/mini_preview"
@@ -511,7 +464,8 @@
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="gone">
 
             <TextView
                 android:id="@+id/stream_quality_landscape"
