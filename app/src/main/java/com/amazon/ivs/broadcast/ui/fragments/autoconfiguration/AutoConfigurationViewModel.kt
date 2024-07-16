@@ -11,7 +11,7 @@ import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.amazonaws.ivs.broadcast.BroadcastSession
 import com.amazonaws.ivs.broadcast.BroadcastSessionTest
 import dagger.hilt.android.lifecycle.HiltViewModel
-import timber.log.Timber
+import com.amazon.ivs.broadcast.CLog
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,7 +48,7 @@ class AutoConfigurationViewModel @Inject constructor() : ViewModel() {
                     if (!shouldTestContinue) stopTest()
 
                     testProgress.postConsumable((result.progress * 100).toInt())
-                    Timber.d("Progress: ${(result.progress * 100).toInt()} ${result.exception}")
+                    CLog.d("Progress: ${(result.progress * 100).toInt()} ${result.exception}")
                     testStatus.postConsumable(result.status)
                 }
             }

@@ -21,7 +21,7 @@ import com.amazon.ivs.broadcast.ui.fragments.BaseFragment
 import com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.AutoConfigurationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import timber.log.Timber
+import com.amazon.ivs.broadcast.CLog
 
 @AndroidEntryPoint
 class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
@@ -172,7 +172,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
 
         binding.defaultCameraContainer.setOnClickListener {
             binding.root.showCameraDialog(getString(R.string.orientation), configurationViewModel.camerasList) { option ->
-                Timber.d("Default camera selected: $option")
+                CLog.d("Default camera selected: $option")
                 binding.defaultCameraValue.text = getString(
                     R.string.camera_option_template,
                     option.type,

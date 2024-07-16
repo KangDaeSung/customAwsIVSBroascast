@@ -20,7 +20,7 @@ import com.amazon.ivs.broadcast.ui.activities.NotificationActivity
 import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
 import com.amazonaws.ivs.broadcast.*
 import kotlinx.coroutines.flow.asSharedFlow
-import timber.log.Timber
+import com.amazon.ivs.broadcast.CLog
 
 private const val NOTIFICATION_CHANNEL_ID = "notificationId"
 private const val NOTIFICATION_CHANNEL_NAME = "notificationName"
@@ -75,7 +75,7 @@ class BroadcastManager(private val context: Context) {
 
     private var broadcastListener = object: BroadcastSession.Listener() {
         override fun onStateChanged(state: BroadcastSession.State) {
-            Timber.d("Broadcast state changed: $state")
+            CLog.d("Broadcast state changed: $state")
             when (state) {
                 BroadcastSession.State.INVALID,
                 BroadcastSession.State.DISCONNECTED,
@@ -99,12 +99,12 @@ class BroadcastManager(private val context: Context) {
         override fun onDeviceRemoved(descriptor: Device.Descriptor) {
             super.onDeviceRemoved(descriptor)
             if (descriptor.deviceId == microphoneDevice?.deviceId && descriptor.isExternal() && descriptor.isValid) {
-                Timber.d("Microphone removed: ${descriptor.deviceId}, ${descriptor.position}")
+                CLog.d("Microphone removed: ${descriptor.deviceId}, ${descriptor.position}")
                 microphoneDevice = null
                 session?.detachDevice(descriptor)
             }
             if (descriptor.deviceId == cameraDevice?.descriptor?.deviceId && descriptor.isExternal() && descriptor.isValid) {
-                Timber.d("Camera removed: ${descriptor.deviceId}, ${descriptor.position}")
+                CLog.d("Camera removed: ${descriptor.deviceId}, ${descriptor.position}")
                 cameraDevice = null
                 session?.detachDevice(descriptor)
             }
@@ -113,22 +113,22 @@ class BroadcastManager(private val context: Context) {
         override fun onDeviceAdded(descriptor: Device.Descriptor) {
             super.onDeviceAdded(descriptor)
             if (descriptor.isExternal() && descriptor.type == Device.Descriptor.DeviceType.MICROPHONE) {
-                Timber.d("Microphone added: ${descriptor.deviceId}, ${descriptor.position}, ${descriptor.type}")
+                CLog.d("Microphone added: ${descriptor.deviceId}, ${descriptor.position}, ${descriptor.type}")
                 microphoneDevice = descriptor
             }
         }
 
         override fun onError(error: BroadcastException) {
-            Timber.d("Broadcast error: $error")
+            CLog.d("Broadcast error: $error")
             if (error.error == ErrorType.ERROR_DEVICE_DISCONNECTED && error.source == microphoneDevice?.urn) {
                 microphoneDevice?.let {
                     try {
                         session?.exchangeDevices(it, it) { microphone ->
-                            Timber.d("Device with id ${microphoneDevice?.deviceId} reattached")
+                            CLog.d("Device with id ${microphoneDevice?.deviceId} reattached")
                             microphoneDevice = microphone.descriptor
                         }
                     } catch (e: BroadcastException) {
-                        Timber.d(e, "Microphone exchange exception")
+                        CLog.e(e)
                         _onError.tryEmit(BroadcastError.DEVICE_DISCONNECTED)
                     }
                 }
@@ -167,17 +167,17 @@ class BroadcastManager(private val context: Context) {
     fun createSession() {
         startBytes = (TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()).toFloat()
         currentConfiguration = configuration.newestConfiguration
-        Timber.d("Creating session with configuration: ${currentConfiguration.asString()}")
+        CLog.d("Creating session with configuration: ${currentConfiguration.asString()}")
         session = BroadcastSession(context, broadcastListener, currentConfiguration, null)
         attachInitialDevices()
-        Timber.d("Session created")
+        CLog.d("Session created")
     }
 
     fun resetSession() {
         var releasingSession = false
         session?.run {
             releasingSession = true
-            Timber.d("Releasing session")
+            CLog.d("Releasing session")
             cameraDevice?.run { detachDevice(this) }
             microphoneDevice?.run { detachDevice(this) }
             cameraOffDevice?.run { detachDevice(this) }
@@ -197,12 +197,12 @@ class BroadcastManager(private val context: Context) {
         session = null
         screenDevices.clear()
         if (releasingSession) {
-            Timber.d("Session released")
+            CLog.d("Session released")
         }
     }
 
     fun startStream() {
-        Timber.d("Starting stream: ${configuration.ingestServerUrl}, ${configuration.streamKey}")
+        CLog.d("Starting stream: ${configuration.ingestServerUrl}, ${configuration.streamKey}")
         session?.start(configuration.ingestServerUrl, configuration.streamKey)
     }
 
@@ -210,13 +210,13 @@ class BroadcastManager(private val context: Context) {
         val newDirection = if (isBackCamera) Device.Descriptor.Position.FRONT else Device.Descriptor.Position.BACK
         val newCamera = context.getCamera(newDirection)
         val canFlip = !isVideoMuted && cameraDevice?.descriptor?.isValid == true
-        Timber.d("Switching camera direction: $canFlip")
+        CLog.d("Switching camera direction: $canFlip")
         if (!canFlip) return
-        Timber.d("Switching camera direction from: $cameraDirection to: $newDirection")
+        CLog.d("Switching camera direction from: $cameraDirection to: $newDirection")
         if (cameraDevice != null && newCamera != null) {
             _onPreviewUpdated.tryEmit(null)
             session?.exchangeDevices(cameraDevice!!, newCamera) { device ->
-                Timber.d("Cameras exchanged from: ${cameraDevice?.descriptor?.friendlyName} to: ${device.descriptor.friendlyName}")
+                CLog.d("Cameras exchanged from: ${cameraDevice?.descriptor?.friendlyName} to: ${device.descriptor.friendlyName}")
                 isBackCamera = !isBackCamera
                 cameraDevice = device
                 displayCameraOutput()
@@ -225,7 +225,7 @@ class BroadcastManager(private val context: Context) {
     }
 
     fun toggleAudio() {
-        Timber.d("Toggling audio state")
+        CLog.d("Toggling audio state")
         isAudioMuted = !isAudioMuted
         if (isAudioMuted) {
             microphoneDevice?.let { device ->
@@ -246,61 +246,61 @@ class BroadcastManager(private val context: Context) {
         isVideoMuted = !isVideoMuted
         drawCameraOff(isVideoMuted)
         _onVideoMuted.tryEmit(isVideoMuted)
-        Timber.d("Toggled video state: $isVideoMuted")
+        CLog.d("Toggled video state: $isVideoMuted")
     }
 
     fun reloadDevices() {
-        Timber.d("Reloading devices")
+        CLog.d("Reloading devices")
         session?.listAttachedDevices()?.forEach { device ->
-            Timber.d("Detaching device: ${device.descriptor.deviceId}, ${device.descriptor.friendlyName}, ${device.descriptor.type}")
+            CLog.d("Detaching device: ${device.descriptor.deviceId}, ${device.descriptor.friendlyName}, ${device.descriptor.type}")
             session?.detachDevice(device)
         }
         session?.awaitDeviceChanges {
-            Timber.d("Devices detached")
+            CLog.d("Devices detached")
             cameraDevice?.descriptor?.let { camera ->
                 attachDevice(camera) { device ->
                     cameraDevice = device
                     displayCameraOutput()
-                    Timber.d("Camera re-attached")
+                    CLog.d("Camera re-attached")
                 }
             }
             microphoneDevice?.let { microphone ->
                 attachDevice(microphone) { device ->
                     microphoneDevice = device.descriptor
-                    Timber.d("Microphone re-attached")
+                    CLog.d("Microphone re-attached")
                 }
             }
             session?.listAttachedDevices()?.forEach {
-                Timber.d("Attached device: ${it.descriptor.deviceId}, ${it.descriptor.friendlyName}, ${it.descriptor.type}")
+                CLog.d("Attached device: ${it.descriptor.deviceId}, ${it.descriptor.friendlyName}, ${it.descriptor.type}")
             }
         }
     }
 
     fun startScreenCapture(data: Intent?) {
-        Timber.d("Starting screen capture")
+        CLog.d("Starting screen capture")
         isScreenShareEnabled = true
         _onScreenShareEnabled.tryEmit(isScreenShareEnabled)
         slotNames.forEach { slot ->
             session?.mixer?.removeSlot(slot)?.takeIf { it }?.run {
-                Timber.d("Slot: $slot removed")
+                CLog.d("Slot: $slot removed")
             }
         }
         configuration.screenShareSlots.forEach { slot ->
             session?.mixer?.addSlot(slot)?.takeIf { it }?.run {
-                Timber.d("Slot: ${slot.name} added")
+                CLog.d("Slot: ${slot.name} added")
             }
         }
         session?.createSystemCaptureSources(data, ScreenCaptureService::class.java, createNotification()) { devices ->
             devices.forEach { device ->
                 val boundState = session?.mixer?.getDeviceBinding(device)
-                Timber.d("Screen share device added: ${device.descriptor.friendlyName} to slot: $boundState")
+                CLog.d("Screen share device added: ${device.descriptor.friendlyName} to slot: $boundState")
             }
             screenDevices = devices
         }
     }
 
     fun stopScreenShare() {
-        Timber.d("Stopping screen capture")
+        CLog.d("Stopping screen capture")
         isScreenShareEnabled = false
         _onScreenShareEnabled.tryEmit(isScreenShareEnabled)
         session?.stopSystemCapture()
@@ -309,7 +309,7 @@ class BroadcastManager(private val context: Context) {
         }
         session?.mixer?.addSlot(configuration.defaultSlot)
         screenDevices.forEach { device ->
-            Timber.d("Detaching screen share device: ${device.descriptor.friendlyName}")
+            CLog.d("Detaching screen share device: ${device.descriptor.friendlyName}")
             session?.detachDevice(device)
         }
         screenDevices.clear()
@@ -319,7 +319,7 @@ class BroadcastManager(private val context: Context) {
     fun displayCameraOutput() {
         (cameraDevice as? ImageDevice)?.getPreviewView(BroadcastConfiguration.AspectMode.FILL)?.run {
             launchMain {
-                Timber.d("Camera output ready")
+                CLog.d("Camera output ready")
                 layoutParams = ViewGroup.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
@@ -330,7 +330,7 @@ class BroadcastManager(private val context: Context) {
     }
 
     private fun createNotification(): Notification? {
-        Timber.d("Creating notification")
+        CLog.d("Creating notification")
         return session?.createServiceNotificationBuilder(
             NOTIFICATION_CHANNEL_ID,
             NOTIFICATION_CHANNEL_NAME,
@@ -339,7 +339,7 @@ class BroadcastManager(private val context: Context) {
     }
 
     private fun attachInitialDevices() {
-        Timber.d("Attaching devices")
+        CLog.d("Attaching devices")
         var cameraFound = false
         var microphoneFound = false
         val availableCameras = mutableListOf<Device.Descriptor>()
@@ -354,7 +354,7 @@ class BroadcastManager(private val context: Context) {
                 availableCameras.add(descriptor)
                 if (isAcceptableDevice && !cameraFound && hasCorrectFacing) {
                     cameraFound = true
-                    Timber.d("Attaching camera: ${descriptor.friendlyName}")
+                    CLog.d("Attaching camera: ${descriptor.friendlyName}")
                     attachDevice(descriptor) { device ->
                         cameraDevice = device
                         displayCameraOutput()
@@ -363,27 +363,27 @@ class BroadcastManager(private val context: Context) {
             }
             if (descriptor.type == Device.Descriptor.DeviceType.MICROPHONE && !microphoneFound) {
                 microphoneFound = true
-                Timber.d("Attaching mic: ${descriptor.friendlyName}")
+                CLog.d("Attaching mic: ${descriptor.friendlyName}")
                 attachDevice(descriptor) { device ->
                     microphoneDevice = device.descriptor
                 }
             }
         }
         _onDevicesListed.tryEmit(availableCameras.map { DeviceItem(it.type.name, it.deviceId, it.position.name) })
-        Timber.d("Initial devices attached: ${availableCameras.map { it.friendlyName }}")
+        CLog.d("Initial devices attached: ${availableCameras.map { it.friendlyName }}")
     }
 
     private fun attachDevice(descriptor: Device.Descriptor, onAttached: (device: Device) -> Unit) {
         session?.attachDevice(descriptor) { device: Device ->
             session?.mixer?.bind(device, SLOT_DEFAULT)
-            Timber.d("Device attached: ${device.descriptor.friendlyName}")
+            CLog.d("Device attached: ${device.descriptor.friendlyName}")
             onAttached(device)
         }
     }
 
     private fun drawCameraOff(isVideoMuted: Boolean) = launchMain {
         if (isVideoMuted) {
-            Timber.d("Binding OFF device")
+            CLog.d("Binding OFF device")
             session?.mixer?.unbind(cameraDevice)
             session?.mixer?.bind(cameraOffDevice, SLOT_DEFAULT)
 
@@ -399,7 +399,7 @@ class BroadcastManager(private val context: Context) {
             canvas?.drawBitmap(cameraOffBitmap!!, centerX, centerY, Paint())
             cameraOffDevice?.inputSurface?.unlockCanvasAndPost(canvas)
         } else {
-            Timber.d("Binding Camera device")
+            CLog.d("Binding Camera device")
             session?.mixer?.unbind(cameraOffDevice)
             session?.mixer?.bind(cameraDevice, SLOT_DEFAULT)
         }

@@ -15,7 +15,6 @@ class NetworkPropertiesFragment : BaseFragment(R.layout.fragment_network_propert
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.adjustBitrateSwitch.isChecked = configurationViewModel.autoAdjustBitrate
         binding.manualBitrateSwitch.isChecked = configurationViewModel.useCustomBitrateLimits
         binding.manualBitrateInputContainer.setVisible(configurationViewModel.useCustomBitrateLimits)
 
@@ -24,10 +23,6 @@ class NetworkPropertiesFragment : BaseFragment(R.layout.fragment_network_propert
 
         binding.backButton.setOnClickListener {
             openFragment(R.id.navigation_settings)
-        }
-
-        binding.adjustBitrateSwitch.setOnCheckedChangeListener { _, isChecked ->
-            configurationViewModel.autoAdjustBitrate = isChecked
         }
 
         binding.manualBitrateSwitch.setOnCheckedChangeListener { _, isChecked ->

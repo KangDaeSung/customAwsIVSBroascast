@@ -12,7 +12,6 @@ class PreferenceProvider(context: Context, preferencesName: String) {
     var orientation by intPreference(Orientation.AUTO.id)
     var width by floatPreference(720f)
     var height by floatPreference(1280f)
-    var autoAdjustBitrate by booleanPreference()
     var useCustomBitrateLimits by booleanPreference()
     var useCustomResolution by booleanPreference()
     var defaultCameraId by stringPreference()

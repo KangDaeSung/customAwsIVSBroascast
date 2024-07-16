@@ -1,6 +1,7 @@
 package com.amazon.ivs.broadcast.ui.fragments
 
 import androidx.lifecycle.ViewModel
+import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.cache.PreferenceProvider
 import com.amazon.ivs.broadcast.cache.SecuredPreferenceProvider
 import com.amazon.ivs.broadcast.common.*
@@ -11,7 +12,6 @@ import com.amazon.ivs.broadcast.models.ui.DeviceItem
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.amazonaws.ivs.broadcast.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
@@ -41,10 +41,6 @@ class ConfigurationViewModel @Inject constructor(
     }
     var isLandscape by Delegates.observable(false) { _, _, newValue ->
         resolution.isLandscape = newValue
-    }
-    var autoAdjustBitrate by Delegates.observable(preferences.autoAdjustBitrate) { _, oldValue, newValue ->
-        preferences.autoAdjustBitrate = newValue
-        isConfigurationChanged = oldValue != newValue
     }
     var useCustomBitrateLimits by Delegates.observable(preferences.useCustomBitrateLimits) { _, oldValue, newValue ->
         preferences.useCustomBitrateLimits = newValue
@@ -76,10 +72,13 @@ class ConfigurationViewModel @Inject constructor(
     }
     var defaultCameraId by Delegates.observable(preferences.defaultCameraId) { _, _, newValue ->
         preferences.defaultCameraId = newValue
-        camerasList?.onEach { it.isSelected = false }?.firstOrNull { it.deviceId == newValue }
-            ?.apply { isSelected = true }
+        camerasList?.onEach {
+            it.isSelected = false
+        }?.firstOrNull {
+            it.deviceId == newValue
+        }?.apply { isSelected = true }
         camerasList?.forEach {
-            Timber.d("${it.isSelected}")
+            CLog.d("${it.isSelected}")
         }
     }
     var defaultCameraPosition by Delegates.observable(preferences.defaultCameraPosition) { _, _, newValue ->
@@ -93,7 +92,7 @@ class ConfigurationViewModel @Inject constructor(
         video.minBitrate = 1500000
         video.size = BroadcastConfiguration.Vec2(720f, 1280f)
         video.targetFramerate = 30
-        video.isUseAutoBitrate = autoAdjustBitrate
+        video.isUseAutoBitrate = true
         audio.channels = 1
         mixer.slots = arrayOf(defaultSlot)
     }
@@ -148,7 +147,7 @@ class ConfigurationViewModel @Inject constructor(
     }
 
     fun onConfigurationChanged(isLandscapeOrientation: Boolean) {
-        Timber.d("Configuration changed: $isLandscapeOrientation")
+        CLog.d("Configuration changed: $isLandscapeOrientation")
         isLandscape = isLandscapeOrientation
         broadcastManager.reloadDevices()
     }

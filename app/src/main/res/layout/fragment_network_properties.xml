@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/broadcast_margin_big"
                 android:background="@color/broadcast_settings_primary_color"
-                app:layout_constraintBottom_toTopOf="@id/adjust_bitrate_container"
+                app:layout_constraintBottom_toTopOf="@id/target_bitrate_container"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -112,74 +112,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/adjust_bitrate_container"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/broadcast_margin_big"
-                android:background="@color/broadcast_settings_primary_color"
-                app:layout_constraintBottom_toTopOf="@id/target_bitrate_container"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/estimated_data_usage_container">
-
-                <TextView
-                    android:id="@+id/adjust_bitrate_title"
-                    style="@style/TextStyleSecondary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="@dimen/settings_start_padding"
-                    android:layout_marginTop="@dimen/broadcast_margin_medium"
-                    android:layout_marginBottom="@dimen/broadcast_margin_medium"
-                    android:gravity="center_vertical"
-                    android:text="@string/auto_adjust_bitrate"
-                    app:layout_constraintBottom_toBottomOf="@id/adjust_bitrate_switch"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/adjust_bitrate_switch" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/adjust_bitrate_switch"
-                    style="@style/Switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/settings_start_padding"
-                    android:layout_marginTop="@dimen/broadcast_margin_medium"
-                    android:layout_marginEnd="@dimen/broadcast_margin_big"
-                    android:layout_marginBottom="@dimen/broadcast_margin_small"
-                    android:checked="false"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:layout_constraintBottom_toTopOf="@id/bitrate_first_separator"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <include
-                    android:id="@+id/bitrate_first_separator"
-                    layout="@layout/view_separator"
-                    android:layout_width="0dp"
-                    android:layout_height="0.5dp"
-                    android:layout_marginStart="@dimen/settings_start_padding"
-                    app:layout_constraintBottom_toTopOf="@id/adjust_bitrate_description"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/adjust_bitrate_switch" />
-
-                <TextView
-                    android:id="@+id/adjust_bitrate_description"
-                    style="@style/TextStyleTertiary"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/settings_start_padding"
-                    android:layout_marginTop="@dimen/broadcast_margin_medium"
-                    android:layout_marginBottom="@dimen/broadcast_margin_medium"
-                    android:text="@string/auto_adjust_bitrate_description"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/bitrate_first_separator" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
             <LinearLayout
                 android:id="@+id/target_bitrate_container"
                 android:layout_width="0dp"
@@ -189,7 +121,7 @@
                 android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/adjust_bitrate_container">
+                app:layout_constraintTop_toBottomOf="@id/estimated_data_usage_container">
 
                 <LinearLayout
                     android:id="@+id/target_bitrate"

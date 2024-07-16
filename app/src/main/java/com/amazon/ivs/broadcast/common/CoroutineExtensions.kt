@@ -5,7 +5,7 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
-import timber.log.Timber
+import com.amazon.ivs.broadcast.CLog
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -30,7 +30,7 @@ inline fun <T> SharedFlow<T>.collectUI(fragment: Fragment, crossinline action: s
 
 fun launchMain(block: suspend CoroutineScope.() -> Unit) = mainScope.launch(
     context = CoroutineExceptionHandler { _, e ->
-        Timber.w(e, "Coroutine failed: ${e.localizedMessage}")
+        CLog.e(e)
     },
     block = block
 )
@@ -40,7 +40,7 @@ fun Fragment.launchUI(
     block: suspend CoroutineScope.() -> Unit
 ) = viewLifecycleOwner.lifecycleScope.launch(
     context = CoroutineExceptionHandler { _, e ->
-        Timber.d(e, "Coroutine failed: ${e.localizedMessage}")
+        CLog.e(e)
     }
 ) {
     repeatOnLifecycle(state = lifecycleState, block = block)
@@ -48,7 +48,7 @@ fun Fragment.launchUI(
 
 fun ViewModel.launch(block: suspend CoroutineScope.() -> Unit) = viewModelScope.launch(
     context = CoroutineExceptionHandler { _, e ->
-        Timber.d(e, "Coroutine failed: ${e.localizedMessage}")
+        CLog.e(e)
     },
     block = block,
 )

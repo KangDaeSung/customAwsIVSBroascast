@@ -32,7 +32,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import timber.log.Timber
+import com.amazon.ivs.broadcast.CLog
 
 @AndroidEntryPoint
 class MainFragment : BaseFragment(R.layout.fragment_main) {
@@ -45,7 +45,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
 
     private val startForScreenShare =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            Timber.d("Screen share started with result: ${result.resultCode}")
+            CLog.d("Screen share started with result: ${result.resultCode}")
             if (result.resultCode == Activity.RESULT_OK) {
                 bottomSheet.setCollapsed()
                 mainViewModel.startScreenCapture(result.data)
@@ -72,7 +72,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("onViewCreated")
+        CLog.d("onViewCreated")
 
         mainViewModel.isOnboardingDone = true
         configurationViewModel.resolution.orientation = configurationViewModel.orientationId
@@ -233,7 +233,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
 
         mainViewModel.onScreenShareEnabled.collectUI(this) { isScreenCaptureOn ->
-            Timber.d("On stream mode changed: Is screen share on $isScreenCaptureOn")
+            CLog.d("On stream mode changed: Is screen share on $isScreenCaptureOn")
             binding.isScreenCaptureOn = isScreenCaptureOn
             changeMiniPlayerConstraints()
             when {
@@ -252,7 +252,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
 
         mainViewModel.onVideoMuted.collectUI(this) { muted ->
-            Timber.d("Video muted: $muted")
+            CLog.d("Video muted: $muted")
             if (muted) {
                 binding.isCameraOff = true
             }
@@ -438,7 +438,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     }
 
     private fun onGoLiveButtonClick() {
-        Timber.d("Will start stream: ${!mainViewModel.isStreamOnline}")
+        CLog.d("Will start stream: ${!mainViewModel.isStreamOnline}")
         if (mainViewModel.isStreamOnline) {
             mainViewModel.resetSession()
             mainViewModel.createSession()
@@ -478,7 +478,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         binding.miniPreview.removeAllViews()
         binding.pipPreviewContainer.removeAllViews()
         if (textureView == null) return
-        Timber.d("Add preview to container")
+        CLog.d("Add preview to container")
         when {
             isInPipMode -> binding.pipPreviewContainer.addView(textureView)
             !isInPipMode && mainViewModel.isScreenShareEnabled -> {
@@ -495,7 +495,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                 if (requireContext().isViewLandscape()) {
                     binding.broadcastSideSheet.defaultSlotContainerLandscape.addView(textureView)
                 } else {
-                    Timber.d("Adding preview to default slot container")
+                    CLog.d("Adding preview to default slot container")
                     binding.defaultSlotContainer.addView(textureView)
                 }
             }
@@ -551,6 +551,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         view.layoutParams.height = height
         binding.broadcastSideSheet.streamContainerCardview.layoutParams.width = width.toInt()
         binding.broadcastSideSheet.streamContainerCardview.layoutParams.height = height
-        Timber.d("Screen size: $screenWidth, $screenHeight, Video size: $width, $height")
+        CLog.d("Screen size: $screenWidth, $screenHeight, Video size: $width, $height")
     }
 }
