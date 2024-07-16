@@ -1,7 +1,5 @@
 package com.amazon.ivs.broadcast.common
 
-import com.amazon.ivs.broadcast.models.ResolutionModel
-
 const val AMAZON_IVS_URL = "https://aws.amazon.com/ivs/"
 const val PRIVACY_POLICY_URL = "https://aws.amazon.com/privacy/"
 
@@ -13,13 +11,6 @@ val slotNames = listOf(
     SLOT_DEFAULT
 )
 
-const val INITIAL_BPS = 1500000
-const val MIN_BPS = 100000
-const val MAX_BPS = 8500000
-const val INITIAL_WIDTH = 720f
-const val INITIAL_HEIGHT: Float = 1280f
-const val INITIAL_FRAME_RATE: Int = 30
-
 const val ANIMATION_DURATION = 250L
 const val TIME_UNTIL_WARNING = 15000L
 const val POPUP_DURATION = 10000L
@@ -29,16 +20,8 @@ const val BYTES_TO_MEGABYTES_FACTOR = 10485760
 const val MB_TO_GB_FACTOR = 1024
 
 const val BPS_TO_KBPS_FACTOR = 0.001
-const val KPBS_TO_BPS_FACTOR = 1000
 const val BPS_TO_GBPH_FACTOR = 2222222.2222222
 
-const val FRAMERATE_LOW = 15
-const val FRAMERATE_MIDDLE = 30
-const val FRAMERATE_HIGH = 60
-
-val RESOLUTION_HIGH = ResolutionModel(1080f, 1920f)
-val RESOLUTION_MIDDLE = ResolutionModel(720f, 1080f)
-val RESOLUTION_LOW = ResolutionModel(480f, 720f)
 val CPU_TEMP_PATHS = listOf(
     "/sys/devices/system/cpu/cpu0/cpufreq/cpu_temp",
     "/sys/devices/system/cpu/cpu0/cpufreq/FakeShmoo_cpu_temp",

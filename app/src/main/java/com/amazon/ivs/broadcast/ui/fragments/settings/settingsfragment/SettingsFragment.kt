@@ -13,7 +13,6 @@ import com.amazon.ivs.broadcast.common.openFragment
 import com.amazon.ivs.broadcast.common.setVisible
 import com.amazon.ivs.broadcast.common.showCameraDialog
 import com.amazon.ivs.broadcast.common.showInputDialog
-import com.amazon.ivs.broadcast.common.toFormattedKbps
 import com.amazon.ivs.broadcast.common.viewBinding
 import com.amazon.ivs.broadcast.databinding.FragmentSettingsBinding
 import com.amazon.ivs.broadcast.models.ui.PopupModel
@@ -60,11 +59,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
             )
         }
 
-        binding.bitrateValue.text = toFormattedKbps(
-            configurationViewModel.targetBitrate,
-            if (configurationViewModel.autoAdjustBitrate) R.string.bitrate_template_auto else R.string.kbps_template,
-        )
-
         binding.resolutionAndFramerateValue.text = with(configurationViewModel.resolution) {
             if (configurationViewModel.useCustomResolution) {
                 getString(R.string.custom_resolution_template, width.toInt(), height.toInt())
@@ -72,7 +66,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
                 getString(
                     R.string.quality_template,
                     shortestSide.toInt(),
-                    configurationViewModel.framerate
+                    30
                 )
             }
         }

@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.amazon.ivs.broadcast.common.ConsumableLiveData
 import com.amazon.ivs.broadcast.common.TIME_UNTIL_WARNING
 import com.amazon.ivs.broadcast.common.launch
-import com.amazon.ivs.broadcast.models.Recommendation
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.amazonaws.ivs.broadcast.BroadcastSession
 import com.amazonaws.ivs.broadcast.BroadcastSessionTest
@@ -24,7 +23,6 @@ class AutoConfigurationViewModel @Inject constructor() : ViewModel() {
     val testStatus = ConsumableLiveData<BroadcastSessionTest.Status>()
     val onWarningReceived = ConsumableLiveData<Unit>()
     val testProgress = ConsumableLiveData<Int>()
-    val onRecommendationReceived = ConsumableLiveData<Recommendation>()
 
     private var testSession: BroadcastSession? = null
     private val timerHandler = Handler(Looper.getMainLooper())
@@ -48,18 +46,6 @@ class AutoConfigurationViewModel @Inject constructor() : ViewModel() {
             ) { result ->
                 launch {
                     if (!shouldTestContinue) stopTest()
-                    result.recommendations.firstOrNull()?.run {
-                        val recommendation = Recommendation(
-                            size.x,
-                            size.y,
-                            targetFramerate,
-                            minBitrate,
-                            initialBitrate,
-                            maxBitrate
-                        )
-                        onRecommendationReceived.postConsumable(recommendation)
-                        Timber.d("Result: $recommendation")
-                    }
 
                     testProgress.postConsumable((result.progress * 100).toInt())
                     Timber.d("Progress: ${(result.progress * 100).toInt()} ${result.exception}")

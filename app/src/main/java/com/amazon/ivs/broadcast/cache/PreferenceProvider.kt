@@ -1,10 +1,6 @@
 package com.amazon.ivs.broadcast.cache
 
 import android.content.Context
-import com.amazon.ivs.broadcast.common.FRAMERATE_LOW
-import com.amazon.ivs.broadcast.common.INITIAL_BPS
-import com.amazon.ivs.broadcast.common.INITIAL_HEIGHT
-import com.amazon.ivs.broadcast.common.INITIAL_WIDTH
 import com.amazon.ivs.broadcast.models.Orientation
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -14,16 +10,11 @@ const val PREFERENCES_NAME = "app_preferences"
 class PreferenceProvider(context: Context, preferencesName: String) {
     var isOnboardingDone by booleanPreference()
     var orientation by intPreference(Orientation.AUTO.id)
-    var targetBitrate by intPreference(INITIAL_BPS)
-    var customMinBitrate by intPreference(INITIAL_BPS)
-    var customMaxBitrate by intPreference(INITIAL_BPS)
-    var customFrameRate by intPreference(FRAMERATE_LOW)
-    var width by floatPreference(INITIAL_WIDTH)
-    var height by floatPreference(INITIAL_HEIGHT)
+    var width by floatPreference(720f)
+    var height by floatPreference(1280f)
     var autoAdjustBitrate by booleanPreference()
     var useCustomBitrateLimits by booleanPreference()
     var useCustomResolution by booleanPreference()
-    var useCustomFramerate by booleanPreference()
     var defaultCameraId by stringPreference()
     var defaultCameraPosition by stringPreference()
 

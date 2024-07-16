@@ -28,7 +28,6 @@ import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
-import timber.log.Timber
 import java.io.RandomAccessFile
 
 fun AppCompatActivity.openFragment(id: Int) {
@@ -144,18 +143,6 @@ fun getSessionUsedBytes(startBytes: Float) =
     ((TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()) - startBytes)
 
 fun Int.toKbps() = (this * BPS_TO_KBPS_FACTOR).toInt()
-
-fun Float.toBps() = this * KPBS_TO_BPS_FACTOR
-
-fun String.toBps(): Int {
-    var bps = INITIAL_BPS
-    try {
-        bps = toFloat().toBps().toInt().takeIf { it in MIN_BPS .. MAX_BPS } ?: MAX_BPS
-    } catch (e: Exception) {
-        Timber.e(e, "Failed to parse KBPS")
-    }
-    return bps
-}
 
 fun View.showSoftKeyboard() {
     val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

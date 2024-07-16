@@ -6,7 +6,6 @@ import com.amazon.ivs.broadcast.cache.SecuredPreferenceProvider
 import com.amazon.ivs.broadcast.common.*
 import com.amazon.ivs.broadcast.common.broadcast.BroadcastManager
 import com.amazon.ivs.broadcast.models.Orientation
-import com.amazon.ivs.broadcast.models.Recommendation
 import com.amazon.ivs.broadcast.models.ResolutionModel
 import com.amazon.ivs.broadcast.models.ui.DeviceItem
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
@@ -43,23 +42,6 @@ class ConfigurationViewModel @Inject constructor(
     var isLandscape by Delegates.observable(false) { _, _, newValue ->
         resolution.isLandscape = newValue
     }
-    var targetBitrate by Delegates.observable(preferences.targetBitrate) { _, oldValue, newValue ->
-        val bitrate = newValue.takeIf { it in MIN_BPS .. MAX_BPS } ?: INITIAL_BPS
-        preferences.targetBitrate = bitrate
-        isConfigurationChanged = oldValue != bitrate
-    }
-    var minimumBitrate by Delegates.observable(preferences.customMinBitrate) { _, oldValue, newValue ->
-        preferences.customMinBitrate = newValue
-        isConfigurationChanged = oldValue != newValue
-    }
-    var maximumBitrate by Delegates.observable(preferences.customMaxBitrate) { _, oldValue, newValue ->
-        preferences.customMaxBitrate = newValue
-        isConfigurationChanged = oldValue != newValue
-    }
-    var framerate by Delegates.observable(preferences.customFrameRate) { _, oldValue, newValue ->
-        preferences.customFrameRate = newValue
-        isConfigurationChanged = oldValue != newValue
-    }
     var autoAdjustBitrate by Delegates.observable(preferences.autoAdjustBitrate) { _, oldValue, newValue ->
         preferences.autoAdjustBitrate = newValue
         isConfigurationChanged = oldValue != newValue
@@ -71,21 +53,6 @@ class ConfigurationViewModel @Inject constructor(
     var useCustomResolution by Delegates.observable(preferences.useCustomResolution) { _, oldValue, newValue ->
         preferences.useCustomResolution = newValue
         isConfigurationChanged = oldValue != newValue
-    }
-    var useCustomFramerate by Delegates.observable(preferences.useCustomFramerate) { _, oldValue, newValue ->
-        preferences.useCustomFramerate = newValue
-        isConfigurationChanged = oldValue != newValue
-    }
-    var recommendation by Delegates.observable(Recommendation()) { _, oldValue, newValue ->
-        useCustomFramerate = false
-        useCustomResolution = false
-        autoAdjustBitrate = true
-        isConfigurationChanged = oldValue != newValue
-        targetBitrate = newValue.targetBitrate
-        minimumBitrate = newValue.minBitrate
-        maximumBitrate = newValue.maxBitrate
-        resolution = ResolutionModel(newValue.width, newValue.height)
-        framerate = newValue.frameRate
     }
     var resolution by Delegates.observable(
         ResolutionModel(
@@ -121,13 +88,11 @@ class ConfigurationViewModel @Inject constructor(
 
     val defaultDeviceItem get() = camerasList?.firstOrNull { it.isSelected }
     val newestConfiguration get() = BroadcastConfiguration().apply {
-        val bitrate = targetBitrate.takeIf { it in MIN_BPS .. MAX_BPS } ?: INITIAL_BPS
-        Timber.d("Initial bitrate: $bitrate")
-        video.initialBitrate = bitrate
-        video.maxBitrate = maximumBitrate
-        video.minBitrate = minimumBitrate
-        video.size = BroadcastConfiguration.Vec2(resolution.width, resolution.height)
-        video.targetFramerate = framerate
+        video.initialBitrate = 1500000
+        video.maxBitrate = 1500000
+        video.minBitrate = 1500000
+        video.size = BroadcastConfiguration.Vec2(720f, 1280f)
+        video.targetFramerate = 30
         video.isUseAutoBitrate = autoAdjustBitrate
         audio.channels = 1
         mixer.slots = arrayOf(defaultSlot)

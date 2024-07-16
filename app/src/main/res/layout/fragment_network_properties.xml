@@ -315,36 +315,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="0.5dp" />
 
-                    <LinearLayout
-                        android:id="@+id/maximum_bitrate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/broadcast_margin_medium"
-                        android:background="?attr/selectableItemBackground"
-                        android:orientation="vertical"
-                        android:paddingBottom="@dimen/broadcast_padding_medium"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <TextView
-                            style="@style/TextStyleSecondary"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:text="@string/maximum_bitrate" />
-
-                        <TextView
-                            android:id="@+id/maximum_bitrate_value"
-                            style="@style/TextStyleTertiary"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:layout_marginTop="@dimen/broadcast_margin_tiny"
-                            android:gravity="center_vertical"
-                            android:text="@string/not_set" />
-
-                    </LinearLayout>
-
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>

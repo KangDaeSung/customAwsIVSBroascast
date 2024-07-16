@@ -100,9 +100,9 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                 .toInt() else resources.getDimension(R.dimen.bottom_sheet_peek_height).toInt()
 
         if (configurationViewModel.useCustomResolution) {
-            binding.streamFramerate.text = getString(R.string.fps_template, configurationViewModel.framerate)
+            binding.streamFramerate.text = getString(R.string.fps_template, 30)
             binding.broadcastSideSheet.streamFramerateLandscape.text =
-                getString(R.string.fps_template, configurationViewModel.framerate)
+                getString(R.string.fps_template, 30)
             binding.streamQuality.text = getString(
                 R.string.resolution_template,
                 configurationViewModel.resolution.width.toInt(),
@@ -117,12 +117,12 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
             binding.streamQuality.text = getString(
                 R.string.quality_template,
                 configurationViewModel.resolution.shortestSide.toInt(),
-                configurationViewModel.framerate
+                30
             )
             binding.broadcastSideSheet.streamQualityLandscape.text = getString(
                 R.string.quality_template,
                 configurationViewModel.resolution.shortestSide.toInt(),
-                configurationViewModel.framerate
+                30
             )
         }
 

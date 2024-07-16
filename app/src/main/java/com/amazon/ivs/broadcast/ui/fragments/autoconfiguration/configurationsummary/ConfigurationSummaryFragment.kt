@@ -21,18 +21,13 @@ class ConfigurationSummaryFragment : BaseFragment(R.layout.fragment_configuratio
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        autoConfigurationViewModel.onRecommendationReceived.consumedValue?.run {
-            configurationViewModel.recommendation = this
-
-            binding.summaryBitrateValue.text = toFormattedKbps(targetBitrate)
-            binding.summaryDataUsageValue.text = toFormattedGbPerHour(targetBitrate)
-            binding.summaryQualityValue.text = getString(
-                    R.string.quality_template,
-                    (if (width > height) height else width).toInt(),
-                    frameRate
-            )
-        }
-
+        binding.summaryBitrateValue.text = toFormattedKbps(1500000)
+        binding.summaryDataUsageValue.text = toFormattedGbPerHour(1500000)
+        binding.summaryQualityValue.text = getString(
+            R.string.quality_template,
+            720,
+            30
+        )
         binding.continueToApp.setOnClickListener {
             autoConfigurationViewModel.release()
             if (autoConfigurationViewModel.isRanFromSettingsView) {
