@@ -8,7 +8,6 @@ data class ResolutionModel(
 ) {
     private val isWidthLonger get() = initialWidth > initialHeight
 
-    val shortestSide get() = if (isWidthLonger) initialHeight else initialWidth
     val widthAgainstHeightRatio get() = width / height
     val width: Float
         get() {

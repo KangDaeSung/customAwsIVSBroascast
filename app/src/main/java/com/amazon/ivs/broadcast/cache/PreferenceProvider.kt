@@ -11,21 +11,10 @@ class PreferenceProvider(context: Context, preferencesName: String) {
     var orientation by intPreference(Orientation.AUTO.id)
     var width by floatPreference(720f)
     var height by floatPreference(1280f)
-    var useCustomResolution by booleanPreference()
     var defaultCameraId by stringPreference()
     var defaultCameraPosition by stringPreference()
 
     private val sharedPreferences by lazy { context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE) }
-
-    private fun booleanPreference() = object : ReadWriteProperty<Any?, Boolean> {
-
-        override fun getValue(thisRef: Any?, property: KProperty<*>) =
-            sharedPreferences.getBoolean(property.name, false)
-
-        override fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) {
-            sharedPreferences.edit().putBoolean(property.name, value).apply()
-        }
-    }
 
     private fun stringPreference() = object : ReadWriteProperty<Any?, String?> {
 

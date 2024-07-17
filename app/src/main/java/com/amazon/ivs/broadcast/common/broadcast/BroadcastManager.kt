@@ -206,9 +206,9 @@ class BroadcastManager(private val context: Context) {
             CLog.d("Session released")
         }
     }
-    val playback_url = "https://bbe4f98c2140.ap-northeast-2.playback.live-video.net/api/video/v1/ap-northeast-2.819673385181.channel.MgvpzndAaNwp.m3u8"
+    val playback_url = "https://bbe4f98c2140.ap-northeast-2.playback.live-video.net/api/video/v1/ap-northeast-2.819673385181.channel.aAHuOcm6tGYx.m3u8"
     val ingest_endpoint = "rtmps://bbe4f98c2140.global-contribute.live-video.net"
-    val stream_key = "sk_ap-northeast-2_eTMuwupJss7o_opLVzqrLZmVy2xCCeHGQp0N1765nzU"
+    val stream_key = "sk_ap-northeast-2_iHk3WTmF1fzD_T7erKMMV5jWNtJdEeOG1ZQt5cAKqgU"
     fun startStream() {
         CLog.d("Starting stream: $ingest_endpoint, $stream_key")
         session?.start(ingest_endpoint, stream_key)

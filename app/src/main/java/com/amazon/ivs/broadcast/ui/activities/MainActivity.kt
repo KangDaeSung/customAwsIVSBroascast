@@ -12,7 +12,6 @@ import com.amazon.ivs.broadcast.common.openFragment
 import com.amazon.ivs.broadcast.databinding.ActivityMainBinding
 import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
 import com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsetup.ConfigurationSetupFragment
-import com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsummary.ConfigurationSummaryFragment
 import com.amazon.ivs.broadcast.ui.fragments.main.MainFragment
 import com.amazon.ivs.broadcast.ui.fragments.main.MainViewModel
 import com.amazon.ivs.broadcast.ui.fragments.settings.graphicpropertiesfragment.GraphicPropertiesFragment
@@ -38,7 +37,6 @@ class MainActivity : AppCompatActivity() {
                     when (currentFragment) {
                         is SplashFragment -> finish()
                         is ConfigurationSetupFragment -> openFragment(R.id.navigation_splash)
-                        is ConfigurationSummaryFragment -> openFragment(R.id.navigation_configuration_setup)
                         is MainFragment -> if (currentFragment.onBackPressed()) finish() else Unit
                         is SettingsFragment -> openFragment(R.id.navigation_main)
                         is GraphicPropertiesFragment -> openFragment(R.id.navigation_settings)

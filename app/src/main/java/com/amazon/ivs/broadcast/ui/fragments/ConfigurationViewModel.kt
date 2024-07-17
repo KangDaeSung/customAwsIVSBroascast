@@ -30,10 +30,6 @@ class ConfigurationViewModel @Inject constructor(
     var isLandscape by Delegates.observable(false) { _, _, newValue ->
         resolution.isLandscape = newValue
     }
-    var useCustomResolution by Delegates.observable(preferences.useCustomResolution) { _, oldValue, newValue ->
-        preferences.useCustomResolution = newValue
-        isConfigurationChanged = oldValue != newValue
-    }
     var resolution by Delegates.observable(
         ResolutionModel(
             preferences.width,
@@ -43,15 +39,12 @@ class ConfigurationViewModel @Inject constructor(
     ) { _, oldValue, newValue ->
         preferences.width = newValue.width
         preferences.height = newValue.height
-        if (useCustomResolution) with(newValue) {
-            orientationId = when {
-                initialWidth > initialHeight -> Orientation.LANDSCAPE.id
-                initialWidth < initialHeight -> Orientation.PORTRAIT.id
-                else -> Orientation.SQUARE.id
-            }
-            newValue.orientation = orientationId
+        orientationId = when {
+            newValue.initialWidth > newValue.initialHeight -> Orientation.LANDSCAPE.id
+            newValue.initialWidth < newValue.initialHeight -> Orientation.PORTRAIT.id
+            else -> Orientation.SQUARE.id
         }
-
+        newValue.orientation = orientationId
         isConfigurationChanged = oldValue != newValue
     }
     var defaultCameraId by Delegates.observable(preferences.defaultCameraId) { _, _, newValue ->

@@ -11,11 +11,6 @@
         tools:layout="@layout/fragment_splash" />
 
     <fragment
-        android:id="@+id/navigation_permissions"
-        android:name="com.amazon.ivs.broadcast.ui.fragments.permissions.PermissionsFragment"
-        tools:layout="@layout/fragment_permissions" />
-
-    <fragment
         android:id="@+id/navigation_configuration_setup"
         android:name="com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsetup.ConfigurationSetupFragment"
         tools:layout="@layout/fragment_configuration_setup" >
@@ -24,11 +19,6 @@
             app:argType="boolean"
             android:defaultValue="false" />
     </fragment>
-
-    <fragment
-        android:id="@+id/navigation_configuration_summary"
-        android:name="com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsummary.ConfigurationSummaryFragment"
-        tools:layout="@layout/fragment_configuration_summary" />
 
     <fragment
         android:id="@+id/navigation_main"

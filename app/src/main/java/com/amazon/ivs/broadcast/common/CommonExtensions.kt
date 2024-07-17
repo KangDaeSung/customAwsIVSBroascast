@@ -1,32 +1,25 @@
 package com.amazon.ivs.broadcast.common
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.TrafficStats
-import android.text.*
-import android.text.method.LinkMovementMethod
-import android.text.style.ClickableSpan
 import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.amazon.ivs.broadcast.R
 import com.amazon.ivs.broadcast.models.Orientation
-import com.amazon.ivs.broadcast.models.Orientation.*
+import com.amazon.ivs.broadcast.models.Orientation.AUTO
+import com.amazon.ivs.broadcast.models.Orientation.LANDSCAPE
+import com.amazon.ivs.broadcast.models.Orientation.PORTRAIT
+import com.amazon.ivs.broadcast.models.Orientation.SQUARE
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import java.io.RandomAccessFile
 
@@ -38,20 +31,8 @@ fun Fragment.openFragment(id: Int) {
     (this.activity as? AppCompatActivity)?.openFragment(id)
 }
 
-fun CoordinatorLayout.showSnackBar(message: String, onClicked: () -> Unit): Snackbar {
-    val snackBar = Snackbar.make(this, message, Snackbar.LENGTH_INDEFINITE)
-    snackBar.setAction(context.getString(R.string.retry)) {
-        snackBar.dismiss()
-        onClicked()
-    }.show()
-    return snackBar
-}
-
 fun AppCompatActivity.getCurrentFragment() =
     supportFragmentManager.primaryNavigationFragment?.childFragmentManager?.fragments?.firstOrNull()
-
-fun Fragment.isPermissionGranted(permissionId: String) =
-    requireContext().checkCallingOrSelfPermission(permissionId) == PackageManager.PERMISSION_GRANTED
 
 fun View.setVisible(isVisible: Boolean = true, hideOption: Int = View.GONE) {
     visibility = if (isVisible) View.VISIBLE else hideOption
@@ -76,33 +57,6 @@ fun ConstraintLayout.LayoutParams.clearAllAnchors() {
     matchConstraintPercentWidth = 1f
     matchConstraintDefaultHeight = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT_SPREAD
     matchConstraintDefaultWidth = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT_SPREAD
-}
-
-fun TextView.createLinks(vararg links: Pair<String, () -> Unit>) {
-    val spannableString = SpannableString(this.text)
-    var startIndexOfLink = -1
-    for (link in links) {
-        val clickableSpan = object : ClickableSpan() {
-            override fun updateDrawState(textPaint: TextPaint) {
-                textPaint.color = textPaint.linkColor
-                textPaint.isUnderlineText = false
-            }
-
-            override fun onClick(view: View) {
-                Selection.setSelection((view as TextView).text as Spannable, 0)
-                view.invalidate()
-                link.second()
-            }
-        }
-        startIndexOfLink = text.toString().indexOf(link.first, startIndexOfLink + 1)
-        if (startIndexOfLink < 0) continue
-        spannableString.setSpan(
-            clickableSpan, startIndexOfLink, startIndexOfLink + link.first.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    }
-    movementMethod = LinkMovementMethod.getInstance()
-    setText(spannableString, TextView.BufferType.SPANNABLE)
 }
 
 fun Context.getCpuTemperature(): String {
@@ -144,11 +98,6 @@ fun getSessionUsedBytes(startBytes: Float) =
 
 fun Int.toKbps() = (this * BPS_TO_KBPS_FACTOR).toInt()
 
-fun View.showSoftKeyboard() {
-    val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-}
-
 fun View.disableAndEnable(millis: Long = DISABLE_DURATION) = launchMain {
     isEnabled = false
     delay(millis)
@@ -164,16 +113,6 @@ fun Int.getOrientation(): Orientation {
         PORTRAIT.id -> PORTRAIT
         else -> SQUARE
     }
-}
-
-fun Activity.startShareIntent(url: String) {
-    val sendIntent: Intent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_TEXT, url)
-        type = "text/plain"
-    }
-    val shareIntent = Intent.createChooser(sendIntent, null)
-    startActivity(shareIntent)
 }
 
 fun BroadcastConfiguration.asString() = "Broadcast configuration:\n" +

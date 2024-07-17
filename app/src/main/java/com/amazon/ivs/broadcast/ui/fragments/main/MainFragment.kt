@@ -77,39 +77,25 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         binding.isStreamMuted = mainViewModel.isStreamMuted
         binding.isCameraOff = mainViewModel.isCameraOff
         binding.isScreenCaptureOn = mainViewModel.isScreenShareEnabled
-        binding.useCustomResolution = configurationViewModel.useCustomResolution
         binding.broadcastBottomSheet.showDebugInfo.setVisible(configurationViewModel.developerMode)
 
         bottomSheet.peekHeight =
             if (configurationViewModel.developerMode) resources.getDimension(R.dimen.bottom_sheet_developer_peek_height)
                 .toInt() else resources.getDimension(R.dimen.bottom_sheet_peek_height).toInt()
 
-        if (configurationViewModel.useCustomResolution) {
-            binding.streamFramerate.text = getString(R.string.fps_template, 30)
-            binding.broadcastSideSheet.streamFramerateLandscape.text =
-                getString(R.string.fps_template, 30)
-            binding.streamQuality.text = getString(
-                R.string.resolution_template,
-                configurationViewModel.resolution.width.toInt(),
-                configurationViewModel.resolution.height.toInt(),
-            )
-            binding.broadcastSideSheet.streamQualityLandscape.text = getString(
-                R.string.resolution_template,
-                configurationViewModel.resolution.width.toInt(),
-                configurationViewModel.resolution.height.toInt(),
-            )
-        } else {
-            binding.streamQuality.text = getString(
-                R.string.quality_template,
-                configurationViewModel.resolution.shortestSide.toInt(),
-                30
-            )
-            binding.broadcastSideSheet.streamQualityLandscape.text = getString(
-                R.string.quality_template,
-                configurationViewModel.resolution.shortestSide.toInt(),
-                30
-            )
-        }
+        binding.streamFramerate.text = getString(R.string.fps_template, 30)
+        binding.broadcastSideSheet.streamFramerateLandscape.text =
+            getString(R.string.fps_template, 30)
+        binding.streamQuality.text = getString(
+            R.string.resolution_template,
+            configurationViewModel.resolution.width.toInt(),
+            configurationViewModel.resolution.height.toInt(),
+        )
+        binding.broadcastSideSheet.streamQualityLandscape.text = getString(
+            R.string.resolution_template,
+            configurationViewModel.resolution.width.toInt(),
+            configurationViewModel.resolution.height.toInt(),
+        )
 
         binding.isViewLandscape = requireContext().isViewLandscape()
 

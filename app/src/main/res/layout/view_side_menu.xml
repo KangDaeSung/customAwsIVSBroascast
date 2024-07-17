@@ -26,10 +26,6 @@
             type="Boolean" />
 
         <variable
-            name="useCustomResolution"
-            type="Boolean" />
-
-        <variable
             name="topBarUpdate"
             type="com.amazon.ivs.broadcast.models.ui.StreamTopBarModel" />
 
@@ -493,7 +489,7 @@
                 android:paddingStart="@dimen/broadcast_margin_medium"
                 android:paddingEnd="@dimen/broadcast_margin_medium"
                 android:textSize="12sp"
-                android:visibility="@{useCustomResolution &amp;&amp; !isStreamOnline ? View.VISIBLE : View.GONE}"
+                android:visibility="@{!isStreamOnline ? View.VISIBLE : View.GONE}"
                 app:layout_constraintStart_toStartOf="@id/stream_quality_landscape"
                 app:layout_constraintTop_toBottomOf="@id/stream_quality_landscape"
                 tools:text="30"
