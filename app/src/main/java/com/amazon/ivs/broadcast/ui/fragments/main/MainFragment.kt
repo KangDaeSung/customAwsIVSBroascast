@@ -65,7 +65,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         if (!mainViewModel.isStreamOnline) {
             configurationViewModel.isLandscape = requireContext().isViewLandscape()
             mainViewModel.resetSession()
-            mainViewModel.createSession()
+            mainViewModel.createSession(requireContext())
             configurationViewModel.isConfigurationChanged = false
             binding.videoConfiguration = mainViewModel.currentConfiguration.video
             binding.topBarUpdate = StreamTopBarModel(streamStatus = DISCONNECTED)
@@ -174,21 +174,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
 
         mainViewModel.onError.collectUI(this) { error ->
             showPopup(PopupModel(getString(R.string.error), getString(error.error), PopupType.ERROR))
-        }
-
-        mainViewModel.onScreenShareEnabled.collectUI(this) { isScreenCaptureOn ->
-            CLog.d("On stream mode changed: Is screen share on $isScreenCaptureOn")
-            binding.isScreenCaptureOn = isScreenCaptureOn
-            changeMiniPlayerConstraints()
-            when {
-                isScreenCaptureOn && !mainViewModel.isStreamOnline -> showOfflineScreenShareAlert()
-                !isScreenCaptureOn && !mainViewModel.isStreamOnline -> clearPopUp()
-                !isScreenCaptureOn && mainViewModel.isStreamOnline && mainViewModel.isCameraOff -> {
-                    binding.cameraOffSlotContainer.doOnLayout {
-                        scaleToMatchResolution(it)
-                    }
-                }
-            }
         }
 
         mainViewModel.onAudioMuted.collectUI(this) { muted ->
@@ -379,7 +364,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         CLog.d("Will start stream: ${!mainViewModel.isStreamOnline}")
         if (mainViewModel.isStreamOnline) {
             mainViewModel.resetSession()
-            mainViewModel.createSession()
+            mainViewModel.createSession(requireContext())
         } else {
             mainViewModel.startStream()
         }
@@ -392,7 +377,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     private fun onFlipCameraButtonClick() {
         binding.broadcastBottomSheet.broadcastFlip.disableAndEnable()
         binding.broadcastSideSheet.broadcastFlip.disableAndEnable()
-        mainViewModel.switchCameraDirection()
+        mainViewModel.switchCameraDirection(requireContext())
     }
 
     private fun onCameraButtonClick() {

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
-import com.amazon.ivs.broadcast.common.getOrientation
 import com.amazon.ivs.broadcast.common.openFragment
 import com.amazon.ivs.broadcast.common.setVisible
 import com.amazon.ivs.broadcast.common.showCameraDialog
@@ -20,7 +19,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.orientationValue.text = configurationViewModel.orientationId.getOrientation().value
         binding.developerModeSwitch.isChecked = configurationViewModel.developerMode
 
         configurationViewModel.resetDefaultCamera()
@@ -35,10 +33,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
 
         binding.backButton.setOnClickListener {
             openFragment(R.id.navigation_main)
-        }
-
-        binding.orientation.setOnClickListener {
-            openFragment(R.id.navigation_stream_graphic_properties)
         }
 
         binding.popupContainer.setOnClickListener {

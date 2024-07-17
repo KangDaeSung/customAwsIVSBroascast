@@ -13,7 +13,6 @@ import com.amazon.ivs.broadcast.databinding.ActivityMainBinding
 import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
 import com.amazon.ivs.broadcast.ui.fragments.main.MainFragment
 import com.amazon.ivs.broadcast.ui.fragments.main.MainViewModel
-import com.amazon.ivs.broadcast.ui.fragments.settings.graphicpropertiesfragment.GraphicPropertiesFragment
 import com.amazon.ivs.broadcast.ui.fragments.settings.settingsfragment.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,7 +34,6 @@ class MainActivity : AppCompatActivity() {
                     when (currentFragment) {
                         is MainFragment -> if (currentFragment.onBackPressed()) finish() else Unit
                         is SettingsFragment -> openFragment(R.id.navigation_main)
-                        is GraphicPropertiesFragment -> openFragment(R.id.navigation_settings)
                         else -> findNavController(R.id.nav_host_fragment).navigateUp()
                     }
                 }

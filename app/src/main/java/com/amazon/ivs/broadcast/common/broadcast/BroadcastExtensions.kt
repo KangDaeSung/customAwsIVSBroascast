@@ -8,7 +8,7 @@ fun Context.listAvailableCameras(): List<Device.Descriptor> =
     try {
        listAvailableDevices(this).filter { it.type == Device.Descriptor.DeviceType.CAMERA }
     } catch (e: Exception) {
-        listOf()
+       listOf()
     }
 
 fun Context.getCamera(position: Device.Descriptor.Position) = listAvailableCameras().firstOrNull { it.position == position }

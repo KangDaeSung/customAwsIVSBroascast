@@ -1,5 +1,6 @@
 package com.amazon.ivs.broadcast.common
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
@@ -28,6 +29,12 @@ inline fun <T> SharedFlow<T>.collectUI(fragment: Fragment, crossinline action: s
     }
 }
 
+inline fun <T> SharedFlow<T>.collectUI(activity: AppCompatActivity, crossinline action: suspend (value: T) -> Unit) {
+    activity.launchUI {
+        collect { action(it) }
+    }
+}
+
 fun launchMain(block: suspend CoroutineScope.() -> Unit) = mainScope.launch(
     context = CoroutineExceptionHandler { _, e ->
         CLog.e(e)
@@ -39,6 +46,17 @@ fun Fragment.launchUI(
     lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
     block: suspend CoroutineScope.() -> Unit
 ) = viewLifecycleOwner.lifecycleScope.launch(
+    context = CoroutineExceptionHandler { _, e ->
+        CLog.e(e)
+    }
+) {
+    repeatOnLifecycle(state = lifecycleState, block = block)
+}
+
+fun AppCompatActivity.launchUI(
+    lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
+    block: suspend CoroutineScope.() -> Unit
+) = lifecycleScope.launch(
     context = CoroutineExceptionHandler { _, e ->
         CLog.e(e)
     }

@@ -10,6 +10,7 @@ import android.os.Looper
 import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.lifecycle.ViewModel
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
 import com.amazon.ivs.broadcast.SharePref
@@ -46,7 +47,7 @@ enum class BroadcastState {
 const val SHARE_IVS_DEFAULT_CAMERA = "SHARE_IVS_DEFAULT_CAMERA"
 const val SHARE_IVS_IS_BACK_CAMERA = "SHARE_IVS_IS_BACK_CAMERA"
 
-class BroadcastManager(private val context: Context) {
+class BroadcastManager : ViewModel() {
     private var isBackCamera = true
     private val cameraDirection get() = if (isBackCamera) Device.Descriptor.Position.BACK else Device.Descriptor.Position.FRONT
 
@@ -71,7 +72,6 @@ class BroadcastManager(private val context: Context) {
     private var _onPreviewUpdated = ConsumableSharedFlow<TextureView?>()
     private var _onAudioMuted = ConsumableSharedFlow<Boolean>(canReplay = true)
     private var _onVideoMuted = ConsumableSharedFlow<Boolean>(canReplay = true)
-    private var _onScreenShareEnabled = ConsumableSharedFlow<Boolean>(canReplay = true)
     private var _onDevicesListed = ConsumableSharedFlow<List<DeviceItem>>(canReplay = true)
 
     private lateinit var configuration: ConfigurationViewModel
@@ -165,7 +165,6 @@ class BroadcastManager(private val context: Context) {
     val onPreviewUpdated = _onPreviewUpdated.asSharedFlow()
     val onAudioMuted = _onAudioMuted.asSharedFlow()
     val onVideoMuted = _onVideoMuted.asSharedFlow()
-    val onScreenShareEnabled = _onScreenShareEnabled.asSharedFlow()
     val onStreamDataChanged = _onStreamDataChanged.asSharedFlow()
     val onDevicesListed = _onDevicesListed.asSharedFlow()
 
@@ -173,12 +172,12 @@ class BroadcastManager(private val context: Context) {
         this.configuration = configuration
     }
 
-    fun createSession() {
+    fun createSession(context:Context) {
         startBytes = (TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()).toFloat()
         currentConfiguration = configuration.newestConfiguration
         CLog.d("Creating session with configuration: ${currentConfiguration.asString()}")
         session = BroadcastSession(context, broadcastListener, currentConfiguration, null)
-        attachInitialDevices()
+        attachInitialDevices(context)
         CLog.d("Session created")
     }
 
@@ -225,7 +224,7 @@ class BroadcastManager(private val context: Context) {
         SharePref.put(SHARE_IVS_DEFAULT_CAMERA,camera.descriptor.deviceId)
     }
 
-    fun flipCameraDirection() {
+    fun flipCameraDirection(context:Context) {
         val newDirection = if (isBackCamera) Device.Descriptor.Position.FRONT else Device.Descriptor.Position.BACK
         val newCamera = context.getCamera(newDirection)
         val canFlip = !isVideoMuted && cameraDevice?.descriptor?.isValid == true
@@ -307,7 +306,7 @@ class BroadcastManager(private val context: Context) {
         }
     }
 
-    private fun attachInitialDevices() {
+    private fun attachInitialDevices(context:Context) {
         CLog.d("Attaching devices")
         var cameraFound = false
         var microphoneFound = false

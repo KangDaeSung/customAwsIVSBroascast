@@ -21,6 +21,6 @@ object InjectionModule {
 
     @Singleton
     @Provides
-    fun provideBroadcastManager(@ApplicationContext context: Context) =
-        BroadcastManager(context)
+    fun provideBroadcastManager() =
+        BroadcastManager()
 }
