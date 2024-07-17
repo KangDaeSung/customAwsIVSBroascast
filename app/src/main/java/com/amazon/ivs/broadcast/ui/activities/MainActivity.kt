@@ -11,12 +11,10 @@ import com.amazon.ivs.broadcast.common.getCurrentFragment
 import com.amazon.ivs.broadcast.common.openFragment
 import com.amazon.ivs.broadcast.databinding.ActivityMainBinding
 import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
-import com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsetup.ConfigurationSetupFragment
 import com.amazon.ivs.broadcast.ui.fragments.main.MainFragment
 import com.amazon.ivs.broadcast.ui.fragments.main.MainViewModel
 import com.amazon.ivs.broadcast.ui.fragments.settings.graphicpropertiesfragment.GraphicPropertiesFragment
 import com.amazon.ivs.broadcast.ui.fragments.settings.settingsfragment.SettingsFragment
-import com.amazon.ivs.broadcast.ui.fragments.splash.SplashFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,8 +33,6 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 getCurrentFragment()?.let { currentFragment ->
                     when (currentFragment) {
-                        is SplashFragment -> finish()
-                        is ConfigurationSetupFragment -> openFragment(R.id.navigation_splash)
                         is MainFragment -> if (currentFragment.onBackPressed()) finish() else Unit
                         is SettingsFragment -> openFragment(R.id.navigation_main)
                         is GraphicPropertiesFragment -> openFragment(R.id.navigation_settings)

@@ -14,7 +14,7 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:name=".App"
+        android:name=".CApp"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AmazonIVSBroadcast"

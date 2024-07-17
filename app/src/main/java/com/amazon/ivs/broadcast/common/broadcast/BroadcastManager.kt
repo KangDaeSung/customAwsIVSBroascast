@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
+import com.amazon.ivs.broadcast.SharePref
 import com.amazon.ivs.broadcast.common.BYTES_TO_MEGABYTES_FACTOR
 import com.amazon.ivs.broadcast.common.ConsumableSharedFlow
 import com.amazon.ivs.broadcast.common.SLOT_DEFAULT
@@ -42,6 +43,9 @@ enum class BroadcastState {
     BROADCAST_ENDED,
 }
 
+const val SHARE_IVS_DEFAULT_CAMERA = "SHARE_IVS_DEFAULT_CAMERA"
+const val SHARE_IVS_IS_BACK_CAMERA = "SHARE_IVS_IS_BACK_CAMERA"
+
 class BroadcastManager(private val context: Context) {
     private var isBackCamera = true
     private val cameraDirection get() = if (isBackCamera) Device.Descriptor.Position.BACK else Device.Descriptor.Position.FRONT
@@ -61,7 +65,6 @@ class BroadcastManager(private val context: Context) {
     private var startBytes = 0f
     private var timeInSeconds = 0
     private var currentState = BroadcastState.BROADCAST_ENDED
-
     private var _onError = ConsumableSharedFlow<BroadcastError>()
     private var _onBroadcastState = ConsumableSharedFlow<BroadcastState>()
     private var _onStreamDataChanged = ConsumableSharedFlow<StreamTopBarModel>()
@@ -214,6 +217,14 @@ class BroadcastManager(private val context: Context) {
         session?.start(ingest_endpoint, stream_key)
     }
 
+    private fun setCameraBack(camera: Device) {
+        CLog.e("KDS3393_TEST_LIVE setCameraBack camera[${camera.descriptor.deviceId},${camera.descriptor.friendlyName}]")
+        isBackCamera = camera.descriptor.position != Device.Descriptor.Position.FRONT
+        cameraDevice = camera
+        SharePref.put(SHARE_IVS_IS_BACK_CAMERA,isBackCamera)
+        SharePref.put(SHARE_IVS_DEFAULT_CAMERA,camera.descriptor.deviceId)
+    }
+
     fun flipCameraDirection() {
         val newDirection = if (isBackCamera) Device.Descriptor.Position.FRONT else Device.Descriptor.Position.BACK
         val newCamera = context.getCamera(newDirection)
@@ -225,8 +236,7 @@ class BroadcastManager(private val context: Context) {
             _onPreviewUpdated.tryEmit(null)
             session?.exchangeDevices(cameraDevice!!, newCamera) { device ->
                 CLog.d("Cameras exchanged from: ${cameraDevice?.descriptor?.friendlyName} to: ${device.descriptor.friendlyName}")
-                isBackCamera = !isBackCamera
-                cameraDevice = device
+                setCameraBack(device)
                 displayCameraOutput()
             }
         }
@@ -267,7 +277,7 @@ class BroadcastManager(private val context: Context) {
             CLog.d("Devices detached")
             cameraDevice?.descriptor?.let { camera ->
                 attachDevice(camera) { device ->
-                    cameraDevice = device
+                    setCameraBack(device)
                     displayCameraOutput()
                     CLog.d("Camera re-attached")
                 }
@@ -305,31 +315,27 @@ class BroadcastManager(private val context: Context) {
         cameraOffDevice = session?.createImageInputSource()
         BroadcastSession.listAvailableDevices(context).forEach { descriptor ->
             if (descriptor.type == Device.Descriptor.DeviceType.CAMERA) {
-                val isAcceptableDevice = (configuration.defaultCameraId != null
-                        && configuration.defaultCameraId == descriptor.deviceId)
-                        || configuration.defaultCameraId == null
-                val hasCorrectFacing = isBackCamera && descriptor.position == Device.Descriptor.Position.BACK ||
-                        !isBackCamera && descriptor.position == Device.Descriptor.Position.FRONT
+                val isAcceptableDevice = SharePref[SHARE_IVS_DEFAULT_CAMERA,"0"] == descriptor.deviceId
                 availableCameras.add(descriptor)
-                if (isAcceptableDevice && !cameraFound && hasCorrectFacing) {
+                if (!cameraFound && isAcceptableDevice) {
                     cameraFound = true
-                    CLog.d("Attaching camera: ${descriptor.friendlyName}")
+                    CLog.e("Attaching camera: ${descriptor.friendlyName}")
                     attachDevice(descriptor) { device ->
-                        cameraDevice = device
+                        setCameraBack(device)
                         displayCameraOutput()
                     }
                 }
             }
             if (descriptor.type == Device.Descriptor.DeviceType.MICROPHONE && !microphoneFound) {
                 microphoneFound = true
-                CLog.d("Attaching mic: ${descriptor.friendlyName}")
+                CLog.e("Attaching mic: ${descriptor.friendlyName}")
                 attachDevice(descriptor) { device ->
                     microphoneDevice = device.descriptor
                 }
             }
         }
         _onDevicesListed.tryEmit(availableCameras.map { DeviceItem(it.type.name, it.deviceId, it.position.name) })
-        CLog.d("Initial devices attached: ${availableCameras.map { it.friendlyName }}")
+        CLog.e("Initial devices attached: ${availableCameras.map { it.friendlyName }}")
     }
 
     private fun attachDevice(descriptor: Device.Descriptor, onAttached: (device: Device) -> Unit) {
