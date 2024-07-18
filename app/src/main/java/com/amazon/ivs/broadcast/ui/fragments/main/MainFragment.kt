@@ -106,7 +106,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
 
         binding.isStreamMuted = broadcastManager.isAudioMuted
         binding.isCameraOff = broadcastManager.isVideoMuted
-        binding.isScreenCaptureOn = broadcastManager.isScreenShareEnabled
+        binding.isScreenCaptureOn = false
         binding.broadcastBottomSheet.showDebugInfo.setVisible(true)
 
         bottomSheet.peekHeight = resources.getDimension(R.dimen.bottom_sheet_developer_peek_height).toInt()
@@ -180,9 +180,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                         streamStatus = DISCONNECTED,
                         pillBackground = R.drawable.bg_offline_pill
                     )
-                    if (broadcastManager.isScreenShareEnabled) {
-                        showOfflineScreenShareAlert()
-                    }
                 }
                 else -> { /* Ignore */ }
             }
@@ -306,14 +303,8 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     private fun onCameraButtonClick() {
         binding.broadcastBottomSheet.broadcastCamera.disableAndEnable()
         binding.broadcastSideSheet.broadcastCamera.disableAndEnable()
-        if (broadcastManager.isScreenShareEnabled) {
-            binding.miniCameraOffSlotContainer.doOnLayout {
-                broadcastManager.toggleVideo()
-            }
-        } else {
-            binding.cameraOffSlotContainer.doOnLayout {
-                broadcastManager.toggleVideo()
-            }
+        binding.cameraOffSlotContainer.doOnLayout {
+            broadcastManager.toggleVideo()
         }
     }
 
@@ -327,13 +318,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         CLog.d("Add preview to container")
         when {
             isInPipMode -> binding.pipPreviewContainer.addView(textureView)
-            !isInPipMode && broadcastManager.isScreenShareEnabled -> {
-                if (requireContext().isViewLandscape()) {
-                    binding.broadcastSideSheet.miniPreview.addView(textureView)
-                } else {
-                    binding.miniPreview.addView(textureView)
-                }
-            }
             else -> {
                 scaleToMatchResolution(textureView)
                 if (requireContext().isViewLandscape()) {

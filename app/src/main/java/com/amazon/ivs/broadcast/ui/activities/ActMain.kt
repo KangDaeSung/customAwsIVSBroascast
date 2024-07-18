@@ -1,6 +1,7 @@
 package com.amazon.ivs.broadcast.ui.activities
 
 import android.app.PictureInPictureParams
+import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
@@ -9,6 +10,7 @@ import android.util.Rational
 import android.view.TextureView
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import com.amazon.ivs.broadcast.CLog
@@ -37,6 +39,7 @@ import com.amazonaws.ivs.broadcast.BroadcastSession
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.properties.Delegates
+
 
 @AndroidEntryPoint
 class ActMain : AppCompatActivity() {
@@ -96,7 +99,7 @@ class ActMain : AppCompatActivity() {
 
         binding.isStreamMuted = broadcastManager.isAudioMuted
         binding.isCameraOff = broadcastManager.isVideoMuted
-        binding.isScreenCaptureOn = broadcastManager.isScreenShareEnabled
+        binding.isScreenCaptureOn = false
         binding.broadcastBottomSheet.showDebugInfo.setVisible(true)
 
         bottomSheet.peekHeight = resources.getDimension(R.dimen.bottom_sheet_developer_peek_height).toInt()
@@ -170,9 +173,6 @@ class ActMain : AppCompatActivity() {
                         streamStatus = BroadcastSession.State.DISCONNECTED,
                         pillBackground = R.drawable.bg_offline_pill
                     )
-                    if (broadcastManager.isScreenShareEnabled) {
-                        showOfflineScreenShareAlert()
-                    }
                 }
                 else -> { /* Ignore */ }
             }
@@ -207,7 +207,6 @@ class ActMain : AppCompatActivity() {
         binding.constraintLayout.onDrawn {
             this.isLandscape = isLandscape
             broadcastManager.reloadDevices()
-
             orientationId = 1
         }
 
@@ -234,19 +233,18 @@ class ActMain : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (broadcastManager.isStreamOnline) {
-            val params = PictureInPictureParams.Builder()
-            params.setAspectRatio(
-                Rational(
-                    resolution.width.toInt(),
-                    resolution.height.toInt()
-                )
-            )
-            enterPictureInPictureMode(params.build())
+            enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(resolution.width.toInt(), resolution.height.toInt())).build())
         } else {
-            onBackPressed()
+            super.onBackPressed()
         }
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (broadcastManager.isStreamOnline) {
+            enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(resolution.width.toInt(), resolution.height.toInt())).build())
+        }
+    }
     private fun updateControlPanelVisibility(isLandscape: Boolean, isInOnCreate: Boolean = false) {
         CLog.e("KDS3393_TEST_updateControlPanelVisibility isLandscape[$isLandscape] isInOnCreate[$isInOnCreate]")
         binding.broadcastBottomSheet.root.setVisible(!isLandscape)
@@ -254,19 +252,15 @@ class ActMain : AppCompatActivity() {
 
         bottomSheet.state = when (binding.broadcastSideSheet.motionLayout.currentState) {
             R.id.menu_full_open -> {
-                CLog.e("KDS3393_TEST_updateControlPanelVisibility menu_full_open")
                 BottomSheetBehavior.STATE_EXPANDED
             }
             R.id.menu_half_open -> {
-                CLog.e("KDS3393_TEST_updateControlPanelVisibility menu_half_open")
                 BottomSheetBehavior.STATE_COLLAPSED
             }
             else -> {
                 if (isInOnCreate) {
-                    CLog.e("KDS3393_TEST_updateControlPanelVisibility STATE_COLLAPSED ${binding.broadcastSideSheet.motionLayout.currentState}")
                     BottomSheetBehavior.STATE_COLLAPSED
                 } else {
-                    CLog.e("KDS3393_TEST_updateControlPanelVisibility STATE_HIDDEN ${binding.broadcastSideSheet.motionLayout.currentState}")
                     BottomSheetBehavior.STATE_HIDDEN
                 }
             }
@@ -300,14 +294,8 @@ class ActMain : AppCompatActivity() {
     private fun onCameraButtonClick() {
         binding.broadcastBottomSheet.broadcastCamera.disableAndEnable()
         binding.broadcastSideSheet.broadcastCamera.disableAndEnable()
-        if (broadcastManager.isScreenShareEnabled) {
-            binding.miniCameraOffSlotContainer.doOnLayout {
-                broadcastManager.toggleVideo()
-            }
-        } else {
-            binding.cameraOffSlotContainer.doOnLayout {
-                broadcastManager.toggleVideo()
-            }
+        binding.cameraOffSlotContainer.doOnLayout {
+            broadcastManager.toggleVideo()
         }
     }
 
@@ -321,13 +309,6 @@ class ActMain : AppCompatActivity() {
         CLog.d("Add preview to container")
         when {
             isInPictureInPictureMode -> binding.pipPreviewContainer.addView(textureView)
-            !isInPictureInPictureMode && broadcastManager.isScreenShareEnabled -> {
-                if (this.isViewLandscape()) {
-                    binding.broadcastSideSheet.miniPreview.addView(textureView)
-                } else {
-                    binding.miniPreview.addView(textureView)
-                }
-            }
             else -> {
                 scaleToMatchResolution(textureView)
                 if (this.isViewLandscape()) {
@@ -338,10 +319,6 @@ class ActMain : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun showOfflineScreenShareAlert() {
-        showPopup(getString(R.string.alert), getString(R.string.offline_screen_sharing_alert), "WARNING")
     }
 
     private fun showPopup(title:String,text:String,type:String) {

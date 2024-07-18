@@ -147,8 +147,6 @@ class BroadcastManager : ViewModel() {
         }
     }
 
-    var isScreenShareEnabled = false
-        private set
     var isVideoMuted = false
         private set
     var isAudioMuted = false
