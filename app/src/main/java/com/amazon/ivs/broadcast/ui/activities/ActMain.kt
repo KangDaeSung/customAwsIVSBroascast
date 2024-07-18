@@ -1,6 +1,5 @@
-package com.amazon.ivs.broadcast.ui.fragments.main
+package com.amazon.ivs.broadcast.ui.activities
 
-import android.annotation.SuppressLint
 import android.app.PictureInPictureParams
 import android.content.res.Configuration
 import android.os.Bundle
@@ -10,6 +9,7 @@ import android.util.Rational
 import android.view.TextureView
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
@@ -24,34 +24,31 @@ import com.amazon.ivs.broadcast.common.formatTopBarNetwork
 import com.amazon.ivs.broadcast.common.getCpuTemperature
 import com.amazon.ivs.broadcast.common.getUsedMemory
 import com.amazon.ivs.broadcast.common.isViewLandscape
-import com.amazon.ivs.broadcast.common.lazyFragmentViewModel
+import com.amazon.ivs.broadcast.common.lazyViewModel
 import com.amazon.ivs.broadcast.common.onDrawn
 import com.amazon.ivs.broadcast.common.setCollapsed
 import com.amazon.ivs.broadcast.common.setVisible
-import com.amazon.ivs.broadcast.common.viewBinding
 import com.amazon.ivs.broadcast.databinding.FragmentMainBinding
 import com.amazon.ivs.broadcast.models.Orientation
 import com.amazon.ivs.broadcast.models.ResolutionModel
 import com.amazon.ivs.broadcast.models.ui.DeviceHealth
 import com.amazon.ivs.broadcast.models.ui.StreamTopBarModel
-import com.amazon.ivs.broadcast.ui.fragments.BaseFragment
-import com.amazonaws.ivs.broadcast.BroadcastSession.State.CONNECTED
-import com.amazonaws.ivs.broadcast.BroadcastSession.State.CONNECTING
-import com.amazonaws.ivs.broadcast.BroadcastSession.State.DISCONNECTED
+import com.amazonaws.ivs.broadcast.BroadcastSession
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.properties.Delegates
 
 @AndroidEntryPoint
-class MainFragment : BaseFragment(R.layout.fragment_main) {
-    private val binding by viewBinding(FragmentMainBinding::bind)
-    private val broadcastManager: BroadcastManager by lazyFragmentViewModel({ this }, { BroadcastManager() })
-    var orientationId by Delegates.observable(Orientation.PORTRAIT.id) { _, oldValue, newValue ->
+class ActMain : AppCompatActivity() {
+    private val binding by lazy(LazyThreadSafetyMode.NONE) { FragmentMainBinding.inflate(layoutInflater) }
+    private val broadcastManager: BroadcastManager by lazyViewModel({ this }, { BroadcastManager() })
+
+    private var orientationId by Delegates.observable(Orientation.PORTRAIT.id) { _, oldValue, newValue ->
     }
-    var isLandscape by Delegates.observable(false) { _, _, newValue ->
+    private var isLandscape by Delegates.observable(false) { _, _, newValue ->
         resolution.isLandscape = newValue
     }
-    var resolution by Delegates.observable(ResolutionModel(DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT, orientation = Orientation.PORTRAIT.id)) { _, oldValue, newValue ->
+    private var resolution by Delegates.observable(ResolutionModel(DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT, orientation = Orientation.PORTRAIT.id)) { _, oldValue, newValue ->
         orientationId = when {
             newValue.initialWidth > newValue.initialHeight -> Orientation.LANDSCAPE.id
             newValue.initialWidth < newValue.initialHeight -> Orientation.PORTRAIT.id
@@ -59,8 +56,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
         newValue.orientation = orientationId
     }
-
-    private var isInPipMode = false
 
     private val bottomSheet: BottomSheetBehavior<View> by lazy {
         BottomSheetBehavior.from(binding.broadcastBottomSheet.root)
@@ -71,10 +66,9 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     private var deviceHealthRunnable = object : Runnable {
         override fun run() {
             try {
-                if (!isAdded) return
                 deviceHealth = DeviceHealth(
-                    requireContext().getUsedMemory(),
-                    requireContext().getCpuTemperature()
+                    getUsedMemory(),
+                    getCpuTemperature()
                 )
                 binding.deviceHealthUpdate = deviceHealth
             } finally {
@@ -83,22 +77,18 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
     }
 
-    fun resetSession() {
-        broadcastManager.resetSession()
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         CLog.d("onViewCreated")
+        setContentView(binding.root)
         resolution.orientation = orientationId
-        updateControlPanelVisibility(requireContext().isViewLandscape(), true)
+        updateControlPanelVisibility(this.isViewLandscape(), true)
         if (!broadcastManager.isStreamOnline) {
-            isLandscape = requireContext().isViewLandscape()
+            isLandscape = this.isViewLandscape()
             broadcastManager.resetSession()
-            broadcastManager.createSession(requireContext(), resources.configuration.orientation)
+            broadcastManager.createSession(this, resources.configuration.orientation)
             binding.videoConfiguration = broadcastManager.currentConfiguration.video
-            binding.topBarUpdate = StreamTopBarModel(streamStatus = DISCONNECTED)
+            binding.topBarUpdate = StreamTopBarModel(streamStatus = BroadcastSession.State.DISCONNECTED)
         } else {
             binding.videoConfiguration = broadcastManager.currentConfiguration.video
             broadcastManager.reloadDevices()
@@ -118,7 +108,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
             resolution.height.toInt(),
         )
 
-        binding.isViewLandscape = requireContext().isViewLandscape()
+        binding.isViewLandscape = this.isViewLandscape()
 
         binding.broadcastBottomSheet.showDebugInfo.setOnClickListener {
             bottomSheet.setCollapsed()
@@ -171,13 +161,13 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
             when (state) {
                 BroadcastState.BROADCAST_STARTED -> {
                     binding.topBarUpdate = StreamTopBarModel(
-                        streamStatus = CONNECTING,
+                        streamStatus = BroadcastSession.State.CONNECTING,
                         pillBackground = R.drawable.bg_connecting_pill
                     )
                 }
                 BroadcastState.BROADCAST_ENDED -> {
                     binding.topBarUpdate = StreamTopBarModel(
-                        streamStatus = DISCONNECTED,
+                        streamStatus = BroadcastSession.State.DISCONNECTED,
                         pillBackground = R.drawable.bg_offline_pill
                     )
                     if (broadcastManager.isScreenShareEnabled) {
@@ -192,7 +182,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
             binding.topBarUpdate = StreamTopBarModel(
                 formattedTime = formatTime(topBarModel.seconds),
                 formattedNetwork = formatTopBarNetwork(topBarModel.usedMegaBytes),
-                streamStatus = CONNECTED,
+                streamStatus = BroadcastSession.State.CONNECTED,
                 pillBackground = R.drawable.bg_online_pill
             )
         }
@@ -200,6 +190,11 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         broadcastManager.onPreviewUpdated.collectUI(this) { textureView ->
             switchStreamContainer(textureView)
             binding.isCameraOff = broadcastManager.isVideoMuted
+        }
+
+        addOnPictureInPictureModeChangedListener { info ->
+            CLog.e("KDS3393_TEST_info = isPIP[${info.isInPictureInPictureMode}]")
+            broadcastManager.reloadDevices()
         }
     }
 
@@ -210,7 +205,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         updateControlPanelVisibility(isLandscape)
         binding.isViewLandscape = isLandscape
         binding.constraintLayout.onDrawn {
-            this@MainFragment.isLandscape = isLandscape
+            this.isLandscape = isLandscape
             broadcastManager.reloadDevices()
 
             orientationId = 1
@@ -219,11 +214,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         if (isLandscape) {
             binding.debugInfo.setVisible(false)
         }
-    }
-
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
-        isInPipMode = isInPictureInPictureMode
-        broadcastManager.reloadDevices()
     }
 
     override fun onResume() {
@@ -237,8 +227,13 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         deviceHealthHandler.removeCallbacks(deviceHealthRunnable)
     }
 
-    fun onBackPressed(): Boolean {
-        return if (broadcastManager.isStreamOnline) {
+    override fun onDestroy() {
+        super.onDestroy()
+        broadcastManager.resetSession()
+    }
+
+    override fun onBackPressed() {
+        if (broadcastManager.isStreamOnline) {
             val params = PictureInPictureParams.Builder()
             params.setAspectRatio(
                 Rational(
@@ -246,10 +241,9 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                     resolution.height.toInt()
                 )
             )
-            activity?.enterPictureInPictureMode(params.build())
-            false
+            enterPictureInPictureMode(params.build())
         } else {
-            true
+            onBackPressed()
         }
     }
 
@@ -287,7 +281,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         CLog.d("Will start stream: ${!broadcastManager.isStreamOnline}")
         if (broadcastManager.isStreamOnline) {
             broadcastManager.resetSession()
-            broadcastManager.createSession(requireContext(), resources.configuration.orientation)
+            broadcastManager.createSession(this, resources.configuration.orientation)
         } else {
             broadcastManager.startStream()
         }
@@ -300,7 +294,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     private fun onFlipCameraButtonClick() {
         binding.broadcastBottomSheet.broadcastFlip.disableAndEnable()
         binding.broadcastSideSheet.broadcastFlip.disableAndEnable()
-        broadcastManager.flipCameraDirection(requireContext())
+        broadcastManager.flipCameraDirection(this)
     }
 
     private fun onCameraButtonClick() {
@@ -326,9 +320,9 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         if (textureView == null) return
         CLog.d("Add preview to container")
         when {
-            isInPipMode -> binding.pipPreviewContainer.addView(textureView)
-            !isInPipMode && broadcastManager.isScreenShareEnabled -> {
-                if (requireContext().isViewLandscape()) {
+            isInPictureInPictureMode -> binding.pipPreviewContainer.addView(textureView)
+            !isInPictureInPictureMode && broadcastManager.isScreenShareEnabled -> {
+                if (this.isViewLandscape()) {
                     binding.broadcastSideSheet.miniPreview.addView(textureView)
                 } else {
                     binding.miniPreview.addView(textureView)
@@ -336,7 +330,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
             }
             else -> {
                 scaleToMatchResolution(textureView)
-                if (requireContext().isViewLandscape()) {
+                if (this.isViewLandscape()) {
                     binding.broadcastSideSheet.defaultSlotContainerLandscape.addView(textureView)
                 } else {
                     CLog.d("Adding preview to default slot container")
@@ -351,11 +345,11 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     }
 
     private fun showPopup(title:String,text:String,type:String) {
-        Toast.makeText(requireContext(),"${title}\n${text}\n${type}",Toast.LENGTH_SHORT).show()
+        Toast.makeText(this,"${title}\n${text}\n${type}", Toast.LENGTH_SHORT).show()
     }
 
     private fun scaleToMatchResolution(view: View) {
-        val container = if (requireContext().isViewLandscape()) binding.broadcastSideSheet.streamContainerLandscape else
+        val container = if (this.isViewLandscape()) binding.broadcastSideSheet.streamContainerLandscape else
             binding.streamContainer
         val screenWidth = container.width
         val screenHeight = container.height

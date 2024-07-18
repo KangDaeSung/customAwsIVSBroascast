@@ -1,9 +1,7 @@
 package com.amazon.ivs.broadcast.common.broadcast
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.Paint
+import android.content.res.Configuration
 import android.net.TrafficStats
 import android.os.Handler
 import android.os.Looper
@@ -23,7 +21,6 @@ import com.amazon.ivs.broadcast.common.getSessionUsedBytes
 import com.amazon.ivs.broadcast.common.launchMain
 import com.amazon.ivs.broadcast.models.ui.DeviceItem
 import com.amazon.ivs.broadcast.models.ui.StreamTopBarModel
-import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.amazonaws.ivs.broadcast.BroadcastException
 import com.amazonaws.ivs.broadcast.BroadcastSession
@@ -46,7 +43,8 @@ enum class BroadcastState {
 
 const val SHARE_IVS_DEFAULT_CAMERA = "SHARE_IVS_DEFAULT_CAMERA"
 const val SHARE_IVS_IS_BACK_CAMERA = "SHARE_IVS_IS_BACK_CAMERA"
-
+const val DEFAULT_VIDEO_WIDTH = 720f
+const val DEFAULT_VIDEO_HEIGHT = 1280f
 class BroadcastManager : ViewModel() {
     private var isBackCamera = true
     private val cameraDirection get() = if (isBackCamera) Device.Descriptor.Position.BACK else Device.Descriptor.Position.FRONT
@@ -75,12 +73,10 @@ class BroadcastManager : ViewModel() {
     private var _onVideoMuted = ConsumableSharedFlow<Boolean>(canReplay = true)
     private var _onDevicesListed = ConsumableSharedFlow<List<DeviceItem>>(canReplay = true)
 
-    private lateinit var configuration: ConfigurationViewModel
     private var session: BroadcastSession? = null
     private var cameraDevice: Device? = null
     private var microphoneDevice: Device.Descriptor? = null
     private var cameraOffDevice: SurfaceSource? = null
-    private var cameraOffBitmap: Bitmap? = null
     private var screenDevices = mutableListOf<Device>()
 
     private var broadcastListener = object: BroadcastSession.Listener() {
@@ -150,8 +146,7 @@ class BroadcastManager : ViewModel() {
             }
         }
     }
-    lateinit var currentConfiguration: BroadcastConfiguration
-        private set
+
     var isScreenShareEnabled = false
         private set
     var isVideoMuted = false
@@ -166,38 +161,37 @@ class BroadcastManager : ViewModel() {
     val onAudioMuted = _onAudioMuted.asSharedFlow()
     val onVideoMuted = _onVideoMuted.asSharedFlow()
     val onStreamDataChanged = _onStreamDataChanged.asSharedFlow()
-    val onDevicesListed = _onDevicesListed.asSharedFlow()
 
-    fun init(configuration: ConfigurationViewModel) {
-        this.configuration = configuration
-    }
-
-    fun createSession(context:Context) {
+    fun createSession(context:Context, orientation:Int) {
         startBytes = (TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()).toFloat()
-        currentConfiguration = createNewConfiguration()
+        currentConfiguration = createConfiguration(orientation)
         CLog.d("Creating session with configuration: ${currentConfiguration.asString()}")
         session = BroadcastSession(context, broadcastListener, currentConfiguration, null)
         attachInitialDevices(context)
         CLog.d("Session created")
     }
-
-    private fun createNewConfiguration() : BroadcastConfiguration {
+    lateinit var currentConfiguration: BroadcastConfiguration
+        private set
+    private fun createConfiguration(orientation:Int) : BroadcastConfiguration {
         return BroadcastConfiguration().apply {
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                video.size = BroadcastConfiguration.Vec2(720f, 1280f)
+            } else {
+                video.size = BroadcastConfiguration.Vec2(1280f, 720f)
+            }
             video.initialBitrate = 1500000
             video.maxBitrate = 1500000
             video.minBitrate = 1500000
-            video.size = BroadcastConfiguration.Vec2(720f, 1280f)
+            video.size = BroadcastConfiguration.Vec2(DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT)
             video.targetFramerate = 30
             video.isUseAutoBitrate = true
             audio.channels = 1
-            mixer.slots = arrayOf(defaultSlot)
+            mixer.slots = arrayOf(BroadcastConfiguration.Mixer.Slot.with { slot ->
+                slot.name = SLOT_DEFAULT
+                slot.aspect = BroadcastConfiguration.AspectMode.FILL
+                slot
+            })
         }
-    }
-
-    private val defaultSlot: BroadcastConfiguration.Mixer.Slot get() = BroadcastConfiguration.Mixer.Slot.with { slot ->
-        slot.name = SLOT_DEFAULT
-        slot.aspect = BroadcastConfiguration.AspectMode.FILL
-        slot
     }
 
     fun resetSession() {
@@ -220,7 +214,6 @@ class BroadcastManager : ViewModel() {
         cameraDevice = null
         microphoneDevice = null
         cameraOffDevice = null
-        cameraOffBitmap = null
         session = null
         screenDevices.clear()
         if (releasingSession) {
@@ -228,7 +221,7 @@ class BroadcastManager : ViewModel() {
         }
     }
     val ingest_endpoint = "rtmps://bbe4f98c2140.global-contribute.live-video.net"
-    val stream_key = "sk_ap-northeast-2_iHk3WTmF1fzD_T7erKMMV5jWNtJdEeOG1ZQt5cAKqgU"
+    val stream_key = "sk_ap-northeast-2_owq2620cOr21_LwKKuVnyPomrnU4slnI75iyRYQ4OVF"
     fun startStream() {
         CLog.d("Starting stream: $ingest_endpoint, $stream_key")
         session?.start(ingest_endpoint, stream_key)
@@ -276,8 +269,7 @@ class BroadcastManager : ViewModel() {
         _onAudioMuted.tryEmit(isAudioMuted)
     }
 
-    fun toggleVideo(bitmap: Bitmap) {
-        cameraOffBitmap = bitmap
+    fun toggleVideo() {
         isVideoMuted = !isVideoMuted
         drawCameraOff(isVideoMuted)
         _onVideoMuted.tryEmit(isVideoMuted)
@@ -368,18 +360,6 @@ class BroadcastManager : ViewModel() {
             CLog.d("Binding OFF device")
             session?.mixer?.unbind(cameraDevice)
             session?.mixer?.bind(cameraOffDevice, SLOT_DEFAULT)
-
-            if (cameraOffBitmap == null) return@launchMain
-            val canvas = cameraOffDevice?.inputSurface?.lockCanvas(null)
-            val paint = Paint()
-            paint.style = Paint.Style.FILL
-            paint.color = Color.rgb(0, 0, 0)
-            val centerX = (configuration.resolution.width - cameraOffBitmap!!.width) / 2
-            val centerY = (configuration.resolution.height - cameraOffBitmap!!.height) / 2
-
-            canvas?.drawRect(0f, 0f, configuration.resolution.width, configuration.resolution.height, paint)
-            canvas?.drawBitmap(cameraOffBitmap!!, centerX, centerY, Paint())
-            cameraOffDevice?.inputSurface?.unlockCanvasAndPost(canvas)
         } else {
             CLog.d("Binding Camera device")
             session?.mixer?.unbind(cameraOffDevice)
