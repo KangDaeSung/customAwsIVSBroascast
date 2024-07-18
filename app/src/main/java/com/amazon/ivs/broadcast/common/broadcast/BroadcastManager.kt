@@ -63,6 +63,7 @@ class BroadcastManager : ViewModel() {
             }
         }
     }
+
     private var startBytes = 0f
     private var timeInSeconds = 0
     private var currentState = BroadcastState.BROADCAST_ENDED
@@ -149,7 +150,6 @@ class BroadcastManager : ViewModel() {
             }
         }
     }
-
     lateinit var currentConfiguration: BroadcastConfiguration
         private set
     var isScreenShareEnabled = false
@@ -174,11 +174,30 @@ class BroadcastManager : ViewModel() {
 
     fun createSession(context:Context) {
         startBytes = (TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()).toFloat()
-        currentConfiguration = configuration.newestConfiguration
+        currentConfiguration = createNewConfiguration()
         CLog.d("Creating session with configuration: ${currentConfiguration.asString()}")
         session = BroadcastSession(context, broadcastListener, currentConfiguration, null)
         attachInitialDevices(context)
         CLog.d("Session created")
+    }
+
+    private fun createNewConfiguration() : BroadcastConfiguration {
+        return BroadcastConfiguration().apply {
+            video.initialBitrate = 1500000
+            video.maxBitrate = 1500000
+            video.minBitrate = 1500000
+            video.size = BroadcastConfiguration.Vec2(720f, 1280f)
+            video.targetFramerate = 30
+            video.isUseAutoBitrate = true
+            audio.channels = 1
+            mixer.slots = arrayOf(defaultSlot)
+        }
+    }
+
+    private val defaultSlot: BroadcastConfiguration.Mixer.Slot get() = BroadcastConfiguration.Mixer.Slot.with { slot ->
+        slot.name = SLOT_DEFAULT
+        slot.aspect = BroadcastConfiguration.AspectMode.FILL
+        slot
     }
 
     fun resetSession() {
@@ -208,7 +227,6 @@ class BroadcastManager : ViewModel() {
             CLog.d("Session released")
         }
     }
-    val playback_url = "https://bbe4f98c2140.ap-northeast-2.playback.live-video.net/api/video/v1/ap-northeast-2.819673385181.channel.aAHuOcm6tGYx.m3u8"
     val ingest_endpoint = "rtmps://bbe4f98c2140.global-contribute.live-video.net"
     val stream_key = "sk_ap-northeast-2_iHk3WTmF1fzD_T7erKMMV5jWNtJdEeOG1ZQt5cAKqgU"
     fun startStream() {

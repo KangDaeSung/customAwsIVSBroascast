@@ -123,14 +123,6 @@
             motion:layout_constraintStart_toEndOf="@+id/landscape_menu_button_holder"
             motion:layout_constraintTop_toTopOf="parent" />
         <Constraint
-            android:id="@+id/screen_capture_on"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/broadcast_primary_bg_color"
-            android:gravity="center"
-            android:orientation="vertical"
-            motion:visibilityMode="ignore" />
-        <Constraint
             android:id="@+id/mini_preview_container_landscape"
             android:layout_width="90dp"
             android:layout_height="160dp"
@@ -138,7 +130,7 @@
             motion:cardBackgroundColor="@color/broadcast_secondary_bg_color"
             motion:cardCornerRadius="8dp"
             motion:layout_constraintBottom_toBottomOf="parent"
-            motion:layout_constraintStart_toEndOf="@id/landscape_settings_button"
+            motion:layout_constraintStart_toStartOf="parent"
             motion:visibilityMode="ignore" />
     </ConstraintSet>
 

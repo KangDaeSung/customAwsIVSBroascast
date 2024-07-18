@@ -12,14 +12,11 @@ import com.amazon.ivs.broadcast.common.openFragment
 import com.amazon.ivs.broadcast.databinding.ActivityMainBinding
 import com.amazon.ivs.broadcast.ui.fragments.ConfigurationViewModel
 import com.amazon.ivs.broadcast.ui.fragments.main.MainFragment
-import com.amazon.ivs.broadcast.ui.fragments.main.MainViewModel
-import com.amazon.ivs.broadcast.ui.fragments.settings.settingsfragment.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val configurationViewModel by viewModels<ConfigurationViewModel>()
-    private val mainViewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +30,6 @@ class MainActivity : AppCompatActivity() {
                 getCurrentFragment()?.let { currentFragment ->
                     when (currentFragment) {
                         is MainFragment -> if (currentFragment.onBackPressed()) finish() else Unit
-                        is SettingsFragment -> openFragment(R.id.navigation_main)
                         else -> findNavController(R.id.nav_host_fragment).navigateUp()
                     }
                 }
@@ -43,7 +39,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        mainViewModel.resetSession()
+        getCurrentFragment()?.let { currentFragment ->
+            if (currentFragment is MainFragment) {
+                currentFragment.resetSession()
+            }
+        }
+
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

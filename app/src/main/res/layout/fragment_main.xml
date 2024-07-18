@@ -145,22 +145,6 @@
 
             </FrameLayout>
 
-            <TextView
-                android:id="@+id/stream_settings"
-                style="@style/TextStyleSecondary"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:fontFamily="@font/jetbrains_mono"
-                android:gravity="center_vertical"
-                android:paddingStart="@dimen/broadcast_margin_medium"
-                android:paddingEnd="@dimen/broadcast_margin_medium"
-                android:text="@string/settings"
-                android:textColor="@color/broadcast_primary_accent_color"
-                android:textSize="14sp"
-                android:visibility="@{isViewLandscape ?  View.GONE : View.VISIBLE}"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/stream_quality_container" />
-
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/stream_container"
                 android:layout_width="0dp"
@@ -186,12 +170,12 @@
                     android:id="@+id/camera_off_slot_container"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:visibility="@{isCameraOff &amp;&amp; !isScreenCaptureOn &amp;&amp; !isViewLandscape ? View.VISIBLE : View.INVISIBLE}"
+                    android:visibility="@{isCameraOff &amp;&amp; !isViewLandscape ? View.VISIBLE : View.INVISIBLE}"
                     app:layout_constraintBottom_toBottomOf="@id/default_slot_container"
                     app:layout_constraintEnd_toEndOf="@id/default_slot_container"
                     app:layout_constraintStart_toStartOf="@id/default_slot_container"
                     app:layout_constraintTop_toTopOf="@id/default_slot_container"
-                    tools:visibility="visible">
+                    tools:visibility="gone">
 
                     <ImageView
                         android:id="@+id/camera_off_icon"
@@ -220,61 +204,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
-                android:id="@+id/screen_capture_on"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:background="@color/broadcast_primary_bg_color"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/broadcast_padding_big"
-                android:paddingEnd="@dimen/broadcast_padding_big"
-                android:visibility="@{isScreenCaptureOn &amp;&amp; !isViewLandscape? View.VISIBLE : View.GONE}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/stream_quality_container">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_screen_sharing" />
-
-                <TextView
-                    style="@style/TextStylePrimary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/broadcast_margin_big"
-                    android:layout_marginBottom="@dimen/broadcast_margin_small"
-                    android:text="@string/screen_sharing_active"
-                    android:textSize="18sp" />
-
-                <TextView
-                    style="@style/TextStyleTertiary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/screensharing_camera_note"
-                    android:textAlignment="center"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/stop_screen_share_center_button"
-                    style="@style/TextStyleSecondary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/broadcast_margin_normal"
-                    android:background="@drawable/bg_broadcast_rectangle_button"
-                    android:elevation="5dp"
-                    android:gravity="center"
-                    android:paddingStart="@dimen/broadcast_padding_normal"
-                    android:paddingTop="@dimen/broadcast_padding_small"
-                    android:paddingEnd="@dimen/broadcast_padding_normal"
-                    android:paddingBottom="@dimen/broadcast_padding_small"
-                    android:text="@string/stop_sharing" />
-
-            </LinearLayout>
-
             <androidx.cardview.widget.CardView
                 android:id="@+id/mini_preview_container"
                 android:layout_width="90dp"
@@ -294,19 +223,19 @@
 
                     <FrameLayout
                         android:id="@+id/mini_preview"
-                        android:visibility="@{!isCameraOff ? View.VISIBLE : View.INVISIBLE}"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                        android:layout_height="match_parent"
+                        android:visibility="@{!isCameraOff ? View.VISIBLE : View.INVISIBLE}" />
 
                     <LinearLayout
                         android:id="@+id/mini_camera_off_slot_container"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:visibility="@{isCameraOff ? View.VISIBLE : View.INVISIBLE}"
-                        android:orientation="vertical"
                         android:gravity="center"
-                        tools:visibility="visible"
-                        tools:ignore="UseCompoundDrawables">
+                        android:orientation="vertical"
+                        android:visibility="@{isCameraOff ? View.VISIBLE : View.INVISIBLE}"
+                        tools:ignore="UseCompoundDrawables"
+                        tools:visibility="visible">
 
                         <ImageView
                             android:layout_width="36dp"
@@ -326,47 +255,6 @@
                 </FrameLayout>
 
             </androidx.cardview.widget.CardView>
-
-            <FrameLayout
-                android:id="@+id/popup_container"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/broadcast_margin_normal"
-                android:layout_marginTop="@dimen/broadcast_notification_top_margin"
-                android:layout_marginEnd="@dimen/broadcast_margin_normal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_max="@dimen/main_item_width">
-
-                <include
-                    layout="@layout/view_warning_notification"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="@{popupUpdate.type == PopupType.WARNING ? View.VISIBLE : View.GONE}"
-                    app:text="@{popupUpdate.text}"
-                    app:title="@{popupUpdate.title}"
-                    tools:visibility="visible" />
-
-                <include
-                    layout="@layout/view_success_notification"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="@{popupUpdate.type == PopupType.SUCCESS ? View.VISIBLE : View.GONE}"
-                    app:text="@{popupUpdate.text}"
-                    app:title="@{popupUpdate.title}"
-                    tools:visibility="gone" />
-
-                <include
-                    layout="@layout/view_error_notification"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="@{popupUpdate.type == PopupType.ERROR ? View.VISIBLE : View.GONE}"
-                    app:text="@{popupUpdate.text}"
-                    app:title="@{popupUpdate.title}"
-                    tools:visibility="gone" />
-
-            </FrameLayout>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/debug_info"
@@ -398,7 +286,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:fillViewport="true"
-                        app:layout_constraintBottom_toTopOf="@id/copy_button"
+                        app:layout_constraintBottom_toTopOf="@id/hide_debug_info"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -710,20 +598,6 @@
                     </ScrollView>
 
                     <TextView
-                        android:id="@+id/copy_button"
-                        style="@style/MainActionButtonAccented"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/broadcast_margin_medium"
-                        android:layout_marginEnd="@dimen/broadcast_margin_tiny"
-                        android:fontFamily="@font/amazon_ember"
-                        android:text="@string/copy"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/hide_debug_info"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_container" />
-
-                    <TextView
                         android:id="@+id/hide_debug_info"
                         style="@style/MainActionButtonAccented"
                         android:layout_width="0dp"
@@ -731,10 +605,10 @@
                         android:layout_marginStart="@dimen/broadcast_margin_tiny"
                         android:fontFamily="@font/amazon_ember"
                         android:text="@string/hide_debug_info"
-                        app:layout_constraintBottom_toBottomOf="@id/copy_button"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/copy_button"
-                        app:layout_constraintTop_toTopOf="@id/copy_button" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_container" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -757,15 +631,16 @@
             tools:visibility="visible" />
 
         <include
-            android:id="@+id/broadcast_side_sheet"
+            android:id="@+id/broadcastSideSheet"
             layout="@layout/view_side_menu"
+            android:visibility="gone"
             app:isCameraOff="@{isCameraOff}"
             app:isScreenCaptureOn="@{isScreenCaptureOn}"
             app:isStreamMuted="@{isStreamMuted}"
-            app:topBarUpdate="@{topBarUpdate}"
             app:isStreamOnline="@{topBarUpdate.streamOnline}"
             app:layout_anchor="@+id/constraintLayout"
             app:layout_anchorGravity="center"
+            app:topBarUpdate="@{topBarUpdate}"
             tools:visibility="visible" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

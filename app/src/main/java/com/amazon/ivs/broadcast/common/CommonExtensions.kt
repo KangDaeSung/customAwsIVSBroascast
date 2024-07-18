@@ -1,23 +1,14 @@
 package com.amazon.ivs.broadcast.common
 
 import android.app.ActivityManager
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.net.TrafficStats
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnLayout
-import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.amazon.ivs.broadcast.R
-import com.amazon.ivs.broadcast.models.Orientation
-import com.amazon.ivs.broadcast.models.Orientation.AUTO
-import com.amazon.ivs.broadcast.models.Orientation.LANDSCAPE
-import com.amazon.ivs.broadcast.models.Orientation.PORTRAIT
-import com.amazon.ivs.broadcast.models.Orientation.SQUARE
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.delay
@@ -25,10 +16,6 @@ import java.io.RandomAccessFile
 
 fun AppCompatActivity.openFragment(id: Int) {
     findNavController(R.id.nav_host_fragment).navigate(id)
-}
-
-fun Fragment.openFragment(id: Int) {
-    (this.activity as? AppCompatActivity)?.openFragment(id)
 }
 
 fun AppCompatActivity.getCurrentFragment() =
@@ -42,21 +29,6 @@ fun View.onDrawn(onDrawn: () -> Unit) {
     invalidate()
     requestLayout()
     doOnLayout { onDrawn() }
-}
-
-fun ConstraintLayout.LayoutParams.clearAllAnchors() {
-    startToStart = ConstraintLayout.LayoutParams.UNSET
-    startToEnd = ConstraintLayout.LayoutParams.UNSET
-    topToTop = ConstraintLayout.LayoutParams.UNSET
-    topToBottom = ConstraintLayout.LayoutParams.UNSET
-    endToEnd = ConstraintLayout.LayoutParams.UNSET
-    endToStart = ConstraintLayout.LayoutParams.UNSET
-    bottomToBottom = ConstraintLayout.LayoutParams.UNSET
-    bottomToTop = ConstraintLayout.LayoutParams.UNSET
-    matchConstraintPercentHeight = 1f
-    matchConstraintPercentWidth = 1f
-    matchConstraintDefaultHeight = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT_SPREAD
-    matchConstraintDefaultWidth = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT_SPREAD
 }
 
 fun Context.getCpuTemperature(): String {
@@ -87,12 +59,6 @@ fun Context.getUsedMemory(): String {
 
 fun BottomSheetBehavior<View>.setCollapsed() = run { state = BottomSheetBehavior.STATE_COLLAPSED }
 
-fun Fragment.copyToClipBoard(text: String) {
-    val clipBoard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clipData = ClipData.newPlainText("json", text)
-    clipBoard.setPrimaryClip(clipData)
-}
-
 fun getSessionUsedBytes(startBytes: Float) =
     ((TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()) - startBytes)
 
@@ -105,15 +71,6 @@ fun View.disableAndEnable(millis: Long = DISABLE_DURATION) = launchMain {
 }
 
 fun Context.isViewLandscape() = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-fun Int.getOrientation(): Orientation {
-    return when (this) {
-        AUTO.id -> AUTO
-        LANDSCAPE.id -> LANDSCAPE
-        PORTRAIT.id -> PORTRAIT
-        else -> SQUARE
-    }
-}
 
 fun BroadcastConfiguration.asString() = "Broadcast configuration:\n" +
         "Video.initialBitrate: ${video.initialBitrate}\n" +

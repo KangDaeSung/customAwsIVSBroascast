@@ -9,26 +9,32 @@ import android.os.Looper
 import android.util.Rational
 import android.view.TextureView
 import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
+import android.widget.Toast
 import androidx.core.view.doOnLayout
 import androidx.core.view.drawToBitmap
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
-import com.amazon.ivs.broadcast.common.*
 import com.amazon.ivs.broadcast.common.broadcast.BroadcastState
+import com.amazon.ivs.broadcast.common.collectUI
+import com.amazon.ivs.broadcast.common.disableAndEnable
+import com.amazon.ivs.broadcast.common.formatTime
+import com.amazon.ivs.broadcast.common.formatTopBarNetwork
+import com.amazon.ivs.broadcast.common.getCpuTemperature
+import com.amazon.ivs.broadcast.common.getUsedMemory
+import com.amazon.ivs.broadcast.common.isViewLandscape
+import com.amazon.ivs.broadcast.common.onDrawn
+import com.amazon.ivs.broadcast.common.setCollapsed
+import com.amazon.ivs.broadcast.common.setVisible
+import com.amazon.ivs.broadcast.common.viewBinding
 import com.amazon.ivs.broadcast.databinding.FragmentMainBinding
-import com.amazon.ivs.broadcast.models.Orientation
 import com.amazon.ivs.broadcast.models.ui.DeviceHealth
-import com.amazon.ivs.broadcast.models.ui.PopupModel
-import com.amazon.ivs.broadcast.models.ui.PopupType
 import com.amazon.ivs.broadcast.models.ui.StreamTopBarModel
 import com.amazon.ivs.broadcast.ui.fragments.BaseFragment
-import com.amazonaws.ivs.broadcast.BroadcastSession.State.*
+import com.amazonaws.ivs.broadcast.BroadcastSession.State.CONNECTED
+import com.amazonaws.ivs.broadcast.BroadcastSession.State.CONNECTING
+import com.amazonaws.ivs.broadcast.BroadcastSession.State.DISCONNECTED
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainFragment : BaseFragment(R.layout.fragment_main) {
@@ -56,6 +62,10 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
     }
 
+    fun resetSession() {
+        mainViewModel.resetSession()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -77,35 +87,18 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         binding.isStreamMuted = mainViewModel.isStreamMuted
         binding.isCameraOff = mainViewModel.isCameraOff
         binding.isScreenCaptureOn = mainViewModel.isScreenShareEnabled
-        binding.broadcastBottomSheet.showDebugInfo.setVisible(configurationViewModel.developerMode)
+        binding.broadcastBottomSheet.showDebugInfo.setVisible(true)
 
-        bottomSheet.peekHeight =
-            if (configurationViewModel.developerMode) resources.getDimension(R.dimen.bottom_sheet_developer_peek_height)
-                .toInt() else resources.getDimension(R.dimen.bottom_sheet_peek_height).toInt()
+        bottomSheet.peekHeight = resources.getDimension(R.dimen.bottom_sheet_developer_peek_height).toInt()
 
         binding.streamFramerate.text = getString(R.string.fps_template, 30)
-        binding.broadcastSideSheet.streamFramerateLandscape.text =
-            getString(R.string.fps_template, 30)
         binding.streamQuality.text = getString(
-            R.string.resolution_template,
-            configurationViewModel.resolution.width.toInt(),
-            configurationViewModel.resolution.height.toInt(),
-        )
-        binding.broadcastSideSheet.streamQualityLandscape.text = getString(
             R.string.resolution_template,
             configurationViewModel.resolution.width.toInt(),
             configurationViewModel.resolution.height.toInt(),
         )
 
         binding.isViewLandscape = requireContext().isViewLandscape()
-
-        binding.streamSettings.setOnClickListener {
-            onSettingsClick()
-        }
-
-        binding.broadcastSideSheet.landscapeSettingsButton.setOnClickListener {
-            onSettingsClick()
-        }
 
         binding.broadcastBottomSheet.showDebugInfo.setOnClickListener {
             bottomSheet.setCollapsed()
@@ -125,17 +118,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                 else -> BottomSheetBehavior.STATE_COLLAPSED
             }
         }
-        binding.broadcastSideSheet.motionLayout.setVisible(requireActivity().isViewLandscape())
 
-        binding.broadcastSideSheet.streamContainerLandscape.setOnClickListener {
-            updateSideSheetState()
-        }
-        binding.broadcastBottomSheet.sendMetadata.setOnClickListener {
-            onSendMetadataButtonClick()
-        }
-        binding.popupContainer.setOnClickListener {
-            clearPopUp()
-        }
         binding.broadcastBottomSheet.broadcastMute.setOnClickListener {
             onMuteButtonClick()
         }
@@ -148,32 +131,9 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         binding.broadcastBottomSheet.broadcastGoLive.setOnClickListener {
             onGoLiveButtonClick()
         }
-        binding.broadcastSideSheet.broadcastCamera.setOnClickListener {
-            onCameraButtonClick()
-        }
-        binding.broadcastSideSheet.broadcastFlip.setOnClickListener {
-            onFlipCameraButtonClick()
-        }
-        binding.broadcastSideSheet.broadcastMute.setOnClickListener {
-            onMuteButtonClick()
-        }
-        binding.broadcastSideSheet.broadcastGoLive.setOnClickListener {
-            onGoLiveButtonClick()
-        }
-        binding.broadcastSideSheet.sendMetadata.setOnClickListener {
-            onSendMetadataButtonClick()
-        }
-
-        binding.copyButton.setOnClickListener {
-            val json = JsonObject()
-            json.addProperty("MEM", deviceHealth.usedMemory)
-            json.addProperty("TEMP", deviceHealth.cpuTemp)
-            json.add("VideoConfig", Gson().toJsonTree(mainViewModel.currentConfiguration.video))
-            copyToClipBoard(json.toString())
-        }
 
         mainViewModel.onError.collectUI(this) { error ->
-            showPopup(PopupModel(getString(R.string.error), getString(error.error), PopupType.ERROR))
+            showPopup(getString(R.string.error), getString(error.error), "ERROR")
         }
 
         mainViewModel.onAudioMuted.collectUI(this) { muted ->
@@ -215,9 +175,6 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                 streamStatus = CONNECTED,
                 pillBackground = R.drawable.bg_online_pill
             )
-            if (binding.popupUpdate?.type == PopupType.WARNING) {
-                clearPopUp()
-            }
         }
 
         mainViewModel.onPreviewUpdated.collectUI(this) { textureView ->
@@ -229,12 +186,10 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         val isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
+        CLog.e("KDS3393_TEST_updateControlPanelVisibility newConfig[$newConfig]")
         updateControlPanelVisibility(isLandscape)
         binding.isViewLandscape = isLandscape
         binding.constraintLayout.onDrawn {
-            if (mainViewModel.isScreenShareEnabled) {
-                changeMiniPlayerConstraints(isLandscape)
-            }
             configurationViewModel.onConfigurationChanged(isLandscape)
         }
         if (isLandscape) {
@@ -274,90 +229,34 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
         }
     }
 
-    private fun updateSideSheetState() {
-        val transition = when (binding.broadcastSideSheet.motionLayout.currentState) {
-            R.id.menu_full_open -> R.id.transition_full_open_to_half_open
-            R.id.menu_half_open -> R.id.transition_half_open_to_close
-            else -> R.id.transition_closed_to_half_open
-        }
-        binding.broadcastSideSheet.motionLayout.setTransition(transition)
-        binding.broadcastSideSheet.motionLayout.transitionToEnd()
-    }
-
-    private fun onSettingsClick() {
-        binding.defaultSlotContainer.removeAllViews()
-        openFragment(R.id.navigation_settings)
-    }
-
-    private fun changeMiniPlayerConstraints(isLandscape: Boolean = requireContext().isViewLandscape()) {
-        val miniContainerParams =
-            binding.broadcastSideSheet.miniPreviewContainerLandscape.layoutParams as ConstraintLayout.LayoutParams
-        miniContainerParams.clearAllAnchors()
-
-        if (isLandscape) {
-            miniContainerParams.rightToRight = ConstraintLayout.LayoutParams.UNSET
-            miniContainerParams.leftToRight = binding.broadcastSideSheet.streamSideBar.id
-            miniContainerParams.bottomToBottom = binding.constraintLayout.id
-            miniContainerParams.bottomMargin = resources.getDimension(R.dimen.broadcast_margin_normal).toInt()
-            miniContainerParams.leftMargin = resources.getDimension(R.dimen.broadcast_margin_normal).toInt()
-        } else {
-            miniContainerParams.leftToRight = ConstraintLayout.LayoutParams.UNSET
-            miniContainerParams.rightToRight = binding.constraintLayout.id
-            miniContainerParams.bottomToBottom = binding.constraintLayout.id
-            miniContainerParams.bottomMargin =
-                resources.getDimension(R.dimen.broadcast_mini_player_bottom_margin).toInt()
-            miniContainerParams.marginEnd = resources.getDimension(R.dimen.broadcast_margin_big).toInt()
-        }
-        binding.broadcastSideSheet.miniPreviewContainerLandscape.layoutParams = miniContainerParams
-    }
-
     private fun updateControlPanelVisibility(isLandscape: Boolean, isInOnCreate: Boolean = false) {
+        CLog.e("KDS3393_TEST_updateControlPanelVisibility isLandscape[$isLandscape] isInOnCreate[$isInOnCreate]")
         binding.broadcastBottomSheet.root.setVisible(!isLandscape)
         binding.broadcastSideSheet.motionLayout.setVisible(isLandscape)
-        if (isLandscape) {
-            val transition = when (bottomSheet.state) {
-                BottomSheetBehavior.STATE_HIDDEN -> R.id.transition_half_open_to_close
-                BottomSheetBehavior.STATE_COLLAPSED -> R.id.transition_closed_to_half_open
-                else -> R.id.transition_half_open_to_full_open
-            }
 
-            binding.broadcastSideSheet.motionLayout.setTransition(transition)
-        } else {
-            bottomSheet.state = when (binding.broadcastSideSheet.motionLayout.currentState) {
-                R.id.menu_full_open -> BottomSheetBehavior.STATE_EXPANDED
-                R.id.menu_half_open -> BottomSheetBehavior.STATE_COLLAPSED
-                else -> {
-                    if (isInOnCreate) BottomSheetBehavior.STATE_COLLAPSED else BottomSheetBehavior.STATE_HIDDEN
+        bottomSheet.state = when (binding.broadcastSideSheet.motionLayout.currentState) {
+            R.id.menu_full_open -> {
+                CLog.e("KDS3393_TEST_updateControlPanelVisibility menu_full_open")
+                BottomSheetBehavior.STATE_EXPANDED
+            }
+            R.id.menu_half_open -> {
+                CLog.e("KDS3393_TEST_updateControlPanelVisibility menu_half_open")
+                BottomSheetBehavior.STATE_COLLAPSED
+            }
+            else -> {
+                if (isInOnCreate) {
+                    CLog.e("KDS3393_TEST_updateControlPanelVisibility STATE_COLLAPSED ${binding.broadcastSideSheet.motionLayout.currentState}")
+                    BottomSheetBehavior.STATE_COLLAPSED
+                } else {
+                    CLog.e("KDS3393_TEST_updateControlPanelVisibility STATE_HIDDEN ${binding.broadcastSideSheet.motionLayout.currentState}")
+                    BottomSheetBehavior.STATE_HIDDEN
                 }
             }
-            binding.broadcastSideSheet.motionLayout.setTransition(R.id.transition_half_open_to_close)
         }
+        binding.broadcastSideSheet.motionLayout.setTransition(R.id.transition_half_open_to_close)
+
         binding.broadcastSideSheet.motionLayout.progress = 1f
         binding.broadcastSideSheet.motionLayout.transitionToEnd()
-    }
-
-    private fun onSendMetadataButtonClick() {
-        /*  binding.broadcastBottomSheet.sendMetadata.setVisible(false)
-          binding.broadcastBottomSheet.metadataProgressBar.setVisible(true)
-          if (viewModel.sendMetadata()) {
-              showPopup(
-                  PopupModel(
-                      getString(R.string.success),
-                      getString(R.string.sample_event_was_sent),
-                      PopupType.SUCCESS
-                  )
-              )
-          } else if (!viewModel.isStreamOnline) {
-              showPopup(
-                  PopupModel(
-                      getString(R.string.error),
-                      getString(R.string.must_be_streaming_to_send_event),
-                      PopupType.ERROR
-                  )
-              )
-          }
-          binding.broadcastBottomSheet.sendMetadata.setVisible(true)
-          binding.broadcastBottomSheet.metadataProgressBar.setVisible(false)*/
     }
 
     private fun onGoLiveButtonClick() {
@@ -412,9 +311,7 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
                 }
             }
             else -> {
-                if (configurationViewModel.orientationId != Orientation.AUTO.id) {
-                    scaleToMatchResolution(textureView)
-                }
+                scaleToMatchResolution(textureView)
                 if (requireContext().isViewLandscape()) {
                     binding.broadcastSideSheet.defaultSlotContainerLandscape.addView(textureView)
                 } else {
@@ -426,29 +323,11 @@ class MainFragment : BaseFragment(R.layout.fragment_main) {
     }
 
     private fun showOfflineScreenShareAlert() {
-        showPopup(
-            PopupModel(
-                getString(R.string.alert),
-                getString(R.string.offline_screen_sharing_alert),
-                PopupType.WARNING
-            ),
-            false
-        )
+        showPopup(getString(R.string.alert), getString(R.string.offline_screen_sharing_alert), "WARNING")
     }
 
-    private fun showPopup(popupUpdateModel: PopupModel, setTimer: Boolean = true) {
-        binding.popupUpdate = popupUpdateModel
-        binding.popupContainer.setVisible()
-        if (setTimer) {
-            launchUI {
-                delay(POPUP_DURATION)
-                clearPopUp()
-            }
-        }
-    }
-
-    private fun clearPopUp() {
-        binding.popupContainer.setVisible(false)
+    private fun showPopup(title:String,text:String,type:String) {
+        Toast.makeText(requireContext(),"${title}\n${text}\n${type}",Toast.LENGTH_SHORT).show()
     }
 
     private fun scaleToMatchResolution(view: View) {

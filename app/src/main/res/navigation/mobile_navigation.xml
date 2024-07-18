@@ -6,28 +6,8 @@
     app:startDestination="@+id/navigation_main">
 
     <fragment
-        android:id="@+id/navigation_configuration_setup"
-        android:name="com.amazon.ivs.broadcast.ui.fragments.autoconfiguration.configurationsetup.ConfigurationSetupFragment"
-        tools:layout="@layout/fragment_configuration_setup" >
-        <argument
-            android:name="runConfiguration"
-            app:argType="boolean"
-            android:defaultValue="false" />
-    </fragment>
-
-    <fragment
         android:id="@+id/navigation_main"
         android:name="com.amazon.ivs.broadcast.ui.fragments.main.MainFragment"
         tools:layout="@layout/fragment_main" />
-
-    <fragment
-        android:id="@+id/navigation_settings"
-        android:name="com.amazon.ivs.broadcast.ui.fragments.settings.settingsfragment.SettingsFragment"
-        tools:layout="@layout/fragment_settings" />
-
-    <fragment
-        android:id="@+id/navigation_stream_graphic_properties"
-        android:name="com.amazon.ivs.broadcast.ui.fragments.settings.graphicpropertiesfragment.GraphicPropertiesFragment"
-        tools:layout="@layout/fragment_graphic_properties" />
 
 </navigation>

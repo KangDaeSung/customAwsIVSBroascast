@@ -223,24 +223,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/sample_event" />
 
-            <TextView
-                android:id="@+id/send_metadata"
-                style="@style/TextStyleSecondary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_bottom_sheet_send_button"
-                android:gravity="center"
-                android:minWidth="56dp"
-                android:paddingStart="@dimen/broadcast_padding_small"
-                android:paddingTop="@dimen/broadcast_padding_tiny"
-                android:paddingEnd="@dimen/broadcast_padding_small"
-                android:paddingBottom="@dimen/broadcast_padding_tiny"
-                android:text="@string/send"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@id/sample_event_value"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/sample_event" />
-
             <ProgressBar
                 android:id="@+id/metadata_progress_bar"
                 android:layout_width="24dp"
