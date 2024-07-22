@@ -3,6 +3,7 @@ package com.amazon.ivs.broadcast.common
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.amazon.ivs.broadcast.R
+import com.amazon.ivs.broadcast.common.LiveConfig.MB_TO_GB_FACTOR
 import java.math.BigDecimal
 import java.math.RoundingMode
 

@@ -12,9 +12,9 @@ import androidx.lifecycle.ViewModel
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
 import com.amazon.ivs.broadcast.SharePref
-import com.amazon.ivs.broadcast.common.BYTES_TO_MEGABYTES_FACTOR
 import com.amazon.ivs.broadcast.common.ConsumableSharedFlow
-import com.amazon.ivs.broadcast.common.SLOT_DEFAULT
+import com.amazon.ivs.broadcast.common.LiveConfig.BYTES_TO_MEGABYTES_FACTOR
+import com.amazon.ivs.broadcast.common.LiveConfig.SLOT_DEFAULT
 import com.amazon.ivs.broadcast.common.asString
 import com.amazon.ivs.broadcast.common.emitNew
 import com.amazon.ivs.broadcast.common.getSessionUsedBytes
@@ -29,11 +29,6 @@ import com.amazonaws.ivs.broadcast.ErrorType
 import com.amazonaws.ivs.broadcast.ImageDevice
 import com.amazonaws.ivs.broadcast.SurfaceSource
 import kotlinx.coroutines.flow.asSharedFlow
-
-enum class BroadcastError(val error: Int) {
-    FATAL(R.string.error_fatal),
-    DEVICE_DISCONNECTED(R.string.error_device_disconnected)
-}
 
 enum class BroadcastState {
     BROADCAST_STARTING,
@@ -65,7 +60,7 @@ class BroadcastManager : ViewModel() {
     private var startBytes = 0f
     private var timeInSeconds = 0
     private var currentState = BroadcastState.BROADCAST_ENDED
-    private var _onError = ConsumableSharedFlow<BroadcastError>()
+    private var _onError = ConsumableSharedFlow<ErrorType>()
     private var _onBroadcastState = ConsumableSharedFlow<BroadcastState>()
     private var _onStreamDataChanged = ConsumableSharedFlow<StreamTopBarModel>()
     private var _onPreviewUpdated = ConsumableSharedFlow<TextureView?>()
@@ -135,14 +130,14 @@ class BroadcastManager : ViewModel() {
                         }
                     } catch (e: BroadcastException) {
                         CLog.e(e)
-                        _onError.tryEmit(BroadcastError.DEVICE_DISCONNECTED)
+                        _onError.tryEmit(ErrorType.ERROR_DEVICE_DISCONNECTED)
                     }
                 }
             } else if (error.error == ErrorType.ERROR_DEVICE_DISCONNECTED && microphoneDevice == null) {
-                _onError.tryEmit(BroadcastError.DEVICE_DISCONNECTED)
+                _onError.tryEmit(ErrorType.ERROR_DEVICE_DISCONNECTED)
             } else if (error.isFatal) {
                 error.printStackTrace()
-                _onError.tryEmit(BroadcastError.FATAL)
+                _onError.tryEmit(error.error)
             }
         }
     }
@@ -219,7 +214,7 @@ class BroadcastManager : ViewModel() {
         }
     }
     val ingest_endpoint = "rtmps://bbe4f98c2140.global-contribute.live-video.net"
-    val stream_key = "sk_ap-northeast-2_owq2620cOr21_LwKKuVnyPomrnU4slnI75iyRYQ4OVF"
+    val stream_key = "sk_ap-northeast-2_uBLqdlROPzjA_jKMvCxW0nhp3GF5TWTyv6Hm0aQv9x1"
     fun startStream() {
         CLog.d("Starting stream: $ingest_endpoint, $stream_key")
         session?.start(ingest_endpoint, stream_key)

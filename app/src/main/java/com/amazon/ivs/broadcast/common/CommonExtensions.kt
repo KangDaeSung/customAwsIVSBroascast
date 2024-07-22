@@ -9,6 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import androidx.navigation.findNavController
 import com.amazon.ivs.broadcast.R
+import com.amazon.ivs.broadcast.common.LiveConfig.BYTES_TO_MEGABYTES_FACTOR
+import com.amazon.ivs.broadcast.common.LiveConfig.CPU_TEMP_PATHS
+import com.amazon.ivs.broadcast.common.LiveConfig.DISABLE_DURATION
 import com.amazonaws.ivs.broadcast.BroadcastConfiguration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.delay
@@ -61,8 +64,6 @@ fun BottomSheetBehavior<View>.setCollapsed() = run { state = BottomSheetBehavior
 
 fun getSessionUsedBytes(startBytes: Float) =
     ((TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes()) - startBytes)
-
-fun Int.toKbps() = (this * BPS_TO_KBPS_FACTOR).toInt()
 
 fun View.disableAndEnable(millis: Long = DISABLE_DURATION) = launchMain {
     isEnabled = false

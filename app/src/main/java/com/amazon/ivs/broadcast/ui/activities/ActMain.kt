@@ -133,20 +133,32 @@ class ActMain : AppCompatActivity() {
         }
 
         binding.broadcastBottomSheet.broadcastMute.setOnClickListener {
-            onMuteButtonClick()
+            broadcastManager.toggleAudio()
         }
         binding.broadcastBottomSheet.broadcastCamera.setOnClickListener {
-            onCameraButtonClick()
+            binding.broadcastBottomSheet.broadcastCamera.disableAndEnable()
+            binding.broadcastSideSheet.broadcastCamera.disableAndEnable()
+            binding.cameraOffSlotContainer.doOnLayout {
+                broadcastManager.toggleVideo()
+            }
         }
         binding.broadcastBottomSheet.broadcastFlip.setOnClickListener {
-            onFlipCameraButtonClick()
+            binding.broadcastBottomSheet.broadcastFlip.disableAndEnable()
+            binding.broadcastSideSheet.broadcastFlip.disableAndEnable()
+            broadcastManager.flipCameraDirection(this)
         }
         binding.broadcastBottomSheet.broadcastGoLive.setOnClickListener {
-            onGoLiveButtonClick()
+            CLog.d("Will start stream: ${!broadcastManager.isStreamOnline}")
+            if (broadcastManager.isStreamOnline) {
+                broadcastManager.resetSession()
+                broadcastManager.createSession(this, resources.configuration.orientation)
+            } else {
+                broadcastManager.startStream()
+            }
         }
 
         broadcastManager.onError.collectUI(this) { error ->
-            showPopup(getString(R.string.error), getString(error.error), "ERROR")
+            CLog.e("KDS3393_TEST_onError collectUI")
         }
 
         broadcastManager.onAudioMuted.collectUI(this) { muted ->
@@ -271,34 +283,6 @@ class ActMain : AppCompatActivity() {
         binding.broadcastSideSheet.motionLayout.transitionToEnd()
     }
 
-    private fun onGoLiveButtonClick() {
-        CLog.d("Will start stream: ${!broadcastManager.isStreamOnline}")
-        if (broadcastManager.isStreamOnline) {
-            broadcastManager.resetSession()
-            broadcastManager.createSession(this, resources.configuration.orientation)
-        } else {
-            broadcastManager.startStream()
-        }
-    }
-
-    private fun onMuteButtonClick() {
-        broadcastManager.toggleAudio()
-    }
-
-    private fun onFlipCameraButtonClick() {
-        binding.broadcastBottomSheet.broadcastFlip.disableAndEnable()
-        binding.broadcastSideSheet.broadcastFlip.disableAndEnable()
-        broadcastManager.flipCameraDirection(this)
-    }
-
-    private fun onCameraButtonClick() {
-        binding.broadcastBottomSheet.broadcastCamera.disableAndEnable()
-        binding.broadcastSideSheet.broadcastCamera.disableAndEnable()
-        binding.cameraOffSlotContainer.doOnLayout {
-            broadcastManager.toggleVideo()
-        }
-    }
-
     private fun switchStreamContainer(textureView: TextureView?) {
         binding.broadcastSideSheet.defaultSlotContainerLandscape.removeAllViews()
         binding.defaultSlotContainer.removeAllViews()
@@ -319,10 +303,6 @@ class ActMain : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun showPopup(title:String,text:String,type:String) {
-        Toast.makeText(this,"${title}\n${text}\n${type}", Toast.LENGTH_SHORT).show()
     }
 
     private fun scaleToMatchResolution(view: View) {

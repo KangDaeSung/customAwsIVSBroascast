@@ -6,8 +6,7 @@
     android:id="@+id/container"
     android:keepScreenOn="true"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.activities.MainActivity">
+    android:layout_height="match_parent">
 
     <fragment
         android:id="@+id/nav_host_fragment"
