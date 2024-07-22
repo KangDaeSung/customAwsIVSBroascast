@@ -97,21 +97,6 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/stream_used_network"
-                style="@style/TextStyleSecondary"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:fontFamily="@font/jetbrains_mono"
-                android:gravity="center_vertical"
-                android:paddingStart="@dimen/broadcast_margin_medium"
-                android:paddingEnd="@dimen/broadcast_margin_medium"
-                android:text="@{topBarUpdate.formattedNetwork}"
-                android:textSize="14sp"
-                android:visibility="@{topBarUpdate.streamOnline &amp;&amp; !isViewLandscape ? View.VISIBLE : View.GONE}"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
             <FrameLayout
                 android:id="@+id/stream_status_pill"
                 android:layout_width="wrap_content"
@@ -121,13 +106,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/stream_quality_container">
-
-                <include
-                    layout="@layout/item_stream_status_pill"
-                    android:visibility="@{topBarUpdate.streamStatus == State.CONNECTED ? View.VISIBLE : View.GONE}"
-                    app:backgroundResource="@{topBarUpdate.pillBackground}"
-                    app:pillText="@{topBarUpdate.formattedTime}"
-                    app:textColor="@{@color/broadcast_white_color}" />
 
                 <include
                     layout="@layout/item_stream_status_pill"

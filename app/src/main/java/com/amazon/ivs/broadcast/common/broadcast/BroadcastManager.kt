@@ -30,12 +30,6 @@ import com.amazonaws.ivs.broadcast.ImageDevice
 import com.amazonaws.ivs.broadcast.SurfaceSource
 import kotlinx.coroutines.flow.asSharedFlow
 
-enum class BroadcastState {
-    BROADCAST_STARTING,
-    BROADCAST_STARTED,
-    BROADCAST_ENDED,
-}
-
 const val SHARE_IVS_DEFAULT_CAMERA = "SHARE_IVS_DEFAULT_CAMERA"
 const val SHARE_IVS_IS_BACK_CAMERA = "SHARE_IVS_IS_BACK_CAMERA"
 const val DEFAULT_VIDEO_WIDTH = 720f
@@ -48,9 +42,7 @@ class BroadcastManager : ViewModel() {
     private var timerRunnable = object : Runnable {
         override fun run() {
             try {
-                val usedMegaBytes = getSessionUsedBytes(startBytes) / BYTES_TO_MEGABYTES_FACTOR
-                timeInSeconds += 1
-                _onStreamDataChanged.tryEmit(StreamTopBarModel(seconds = timeInSeconds, usedMegaBytes = usedMegaBytes))
+                _onStreamDataChanged.tryEmit(StreamTopBarModel())
             } finally {
                 timerHandler.postDelayed(this, 1000)
             }
@@ -58,10 +50,9 @@ class BroadcastManager : ViewModel() {
     }
 
     private var startBytes = 0f
-    private var timeInSeconds = 0
-    private var currentState = BroadcastState.BROADCAST_ENDED
+    private var currentState = BroadcastSession.State.DISCONNECTED
     private var _onError = ConsumableSharedFlow<ErrorType>()
-    private var _onBroadcastState = ConsumableSharedFlow<BroadcastState>()
+    private var _onBroadcastState = ConsumableSharedFlow<BroadcastSession.State>()
     private var _onStreamDataChanged = ConsumableSharedFlow<StreamTopBarModel>()
     private var _onPreviewUpdated = ConsumableSharedFlow<TextureView?>()
     private var _onAudioMuted = ConsumableSharedFlow<Boolean>(canReplay = true)
@@ -81,16 +72,16 @@ class BroadcastManager : ViewModel() {
                 BroadcastSession.State.INVALID,
                 BroadcastSession.State.DISCONNECTED,
                 BroadcastSession.State.ERROR -> {
-                    currentState = BroadcastState.BROADCAST_ENDED
+                    currentState = state
                     _onBroadcastState.emitNew(currentState)
                     resetTimer()
                 }
                 BroadcastSession.State.CONNECTING -> {
-                    currentState = BroadcastState.BROADCAST_STARTING
+                    currentState = state
                     _onBroadcastState.emitNew(currentState)
                 }
                 BroadcastSession.State.CONNECTED -> {
-                    currentState = BroadcastState.BROADCAST_STARTED
+                    currentState = state
                     _onBroadcastState.emitNew(currentState)
                     timerRunnable.run()
                 }
@@ -146,7 +137,7 @@ class BroadcastManager : ViewModel() {
         private set
     var isAudioMuted = false
         private set
-    val isStreamOnline get() = currentState == BroadcastState.BROADCAST_STARTED
+    val isStreamOnline get() = currentState == BroadcastSession.State.CONNECTED
 
     val onError = _onError.asSharedFlow()
     val onBroadcastState = _onBroadcastState.asSharedFlow()
@@ -202,7 +193,7 @@ class BroadcastManager : ViewModel() {
             stop()
             release()
         }
-        _onBroadcastState.tryEmit(BroadcastState.BROADCAST_ENDED)
+        _onBroadcastState.tryEmit(BroadcastSession.State.DISCONNECTED)
         _onPreviewUpdated.tryEmit(null)
         cameraDevice = null
         microphoneDevice = null
@@ -362,7 +353,6 @@ class BroadcastManager : ViewModel() {
     }
 
     private fun resetTimer() {
-        timeInSeconds = 0
         timerHandler.removeCallbacks(timerRunnable)
     }
 }

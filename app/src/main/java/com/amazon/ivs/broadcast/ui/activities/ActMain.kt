@@ -1,30 +1,20 @@
 package com.amazon.ivs.broadcast.ui.activities
 
 import android.app.PictureInPictureParams
-import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Rational
 import android.view.TextureView
 import android.view.View
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import com.amazon.ivs.broadcast.CLog
 import com.amazon.ivs.broadcast.R
 import com.amazon.ivs.broadcast.common.broadcast.BroadcastManager
-import com.amazon.ivs.broadcast.common.broadcast.BroadcastState
 import com.amazon.ivs.broadcast.common.broadcast.DEFAULT_VIDEO_HEIGHT
 import com.amazon.ivs.broadcast.common.broadcast.DEFAULT_VIDEO_WIDTH
 import com.amazon.ivs.broadcast.common.collectUI
 import com.amazon.ivs.broadcast.common.disableAndEnable
-import com.amazon.ivs.broadcast.common.formatTime
-import com.amazon.ivs.broadcast.common.formatTopBarNetwork
-import com.amazon.ivs.broadcast.common.getCpuTemperature
-import com.amazon.ivs.broadcast.common.getUsedMemory
 import com.amazon.ivs.broadcast.common.isViewLandscape
 import com.amazon.ivs.broadcast.common.lazyViewModel
 import com.amazon.ivs.broadcast.common.onDrawn
@@ -33,7 +23,6 @@ import com.amazon.ivs.broadcast.common.setVisible
 import com.amazon.ivs.broadcast.databinding.FragmentMainBinding
 import com.amazon.ivs.broadcast.models.Orientation
 import com.amazon.ivs.broadcast.models.ResolutionModel
-import com.amazon.ivs.broadcast.models.ui.DeviceHealth
 import com.amazon.ivs.broadcast.models.ui.StreamTopBarModel
 import com.amazonaws.ivs.broadcast.BroadcastSession
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -62,22 +51,6 @@ class ActMain : AppCompatActivity() {
 
     private val bottomSheet: BottomSheetBehavior<View> by lazy {
         BottomSheetBehavior.from(binding.broadcastBottomSheet.root)
-    }
-
-    private var deviceHealth = DeviceHealth()
-    private val deviceHealthHandler = Handler(Looper.getMainLooper())
-    private var deviceHealthRunnable = object : Runnable {
-        override fun run() {
-            try {
-                deviceHealth = DeviceHealth(
-                    getUsedMemory(),
-                    getCpuTemperature()
-                )
-                binding.deviceHealthUpdate = deviceHealth
-            } finally {
-                deviceHealthHandler.postDelayed(this, 1000)
-            }
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -174,13 +147,18 @@ class ActMain : AppCompatActivity() {
 
         broadcastManager.onBroadcastState.collectUI(this) { state ->
             when (state) {
-                BroadcastState.BROADCAST_STARTED -> {
+                BroadcastSession.State.CONNECTING -> {
+
+                }
+                BroadcastSession.State.CONNECTED -> {
                     binding.topBarUpdate = StreamTopBarModel(
-                        streamStatus = BroadcastSession.State.CONNECTING,
+                        streamStatus = BroadcastSession.State.CONNECTED,
                         pillBackground = R.drawable.bg_connecting_pill
                     )
                 }
-                BroadcastState.BROADCAST_ENDED -> {
+                BroadcastSession.State.INVALID,
+                BroadcastSession.State.DISCONNECTED,
+                BroadcastSession.State.ERROR -> {
                     binding.topBarUpdate = StreamTopBarModel(
                         streamStatus = BroadcastSession.State.DISCONNECTED,
                         pillBackground = R.drawable.bg_offline_pill
@@ -192,8 +170,6 @@ class ActMain : AppCompatActivity() {
 
         broadcastManager.onStreamDataChanged.collectUI(this) { topBarModel ->
             binding.topBarUpdate = StreamTopBarModel(
-                formattedTime = formatTime(topBarModel.seconds),
-                formattedNetwork = formatTopBarNetwork(topBarModel.usedMegaBytes),
                 streamStatus = BroadcastSession.State.CONNECTED,
                 pillBackground = R.drawable.bg_online_pill
             )
@@ -229,13 +205,7 @@ class ActMain : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        deviceHealthHandler.post(deviceHealthRunnable)
         broadcastManager.displayCameraOutput()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        deviceHealthHandler.removeCallbacks(deviceHealthRunnable)
     }
 
     override fun onDestroy() {
